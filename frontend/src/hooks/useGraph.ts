@@ -30,6 +30,7 @@ export function transformToFlowGraph(
 ): { nodes: FlowNode[]; edges: FlowEdge[] } {
   const nodes: FlowNode[] = data.persons.map((person, index) => ({
     id: person.id,
+    type: 'personNode',
     data: {
       label: person.full_name,
       status: 'validated' as const,
@@ -44,6 +45,7 @@ export function transformToFlowGraph(
 
   const edges: FlowEdge[] = data.relationships.map((rel) => ({
     id: rel.id,
+    type: 'relationshipEdge',
     source: rel.person_a_id,
     target: rel.person_b_id,
     label: rel.relationship_type,
