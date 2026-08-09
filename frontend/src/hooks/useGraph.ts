@@ -36,6 +36,9 @@ export function transformToFlowGraph(
       status: 'validated' as const,
       birthDate: person.birth_date,
       deathDate: person.death_date,
+      gender: person.gender,
+      married: person.married,
+      avatar_url: person.avatar_url,
     },
     position: {
       x: (index % 5) * 250,

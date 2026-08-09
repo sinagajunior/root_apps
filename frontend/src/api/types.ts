@@ -16,12 +16,18 @@ export interface Person {
   full_name: string
   birth_date?: string
   death_date?: string
+  gender?: string
+  married?: boolean
+  avatar_url?: string
 }
 
 export interface CreatePersonRequest {
   full_name: string
   birth_date?: string
   death_date?: string
+  gender?: string
+  married?: boolean
+  avatar_url?: string
 }
 
 // Relationship types

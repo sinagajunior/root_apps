@@ -71,7 +71,7 @@ pub async fn get_subgraph(
 
     // Bulk fetch persons
     let person_result_rows = sqlx::query(
-        "SELECT id, full_name, birth_date, death_date FROM persons WHERE id = ANY($1::uuid[])"
+        "SELECT id, full_name, birth_date, death_date, gender, married, avatar_url FROM persons WHERE id = ANY($1::uuid[])"
     )
     .bind(&person_ids)
     .fetch_all(&state.db)
@@ -83,6 +83,9 @@ pub async fn get_subgraph(
             full_name: row.get("full_name"),
             birth_date: row.get("birth_date"),
             death_date: row.get("death_date"),
+            gender: row.get("gender"),
+            married: row.get("married"),
+            avatar_url: row.get("avatar_url"),
         }
     }).collect();
 

@@ -39,7 +39,7 @@ pub async fn list_persons(
     let limit = params.limit.unwrap_or(20).min(100);
     let offset = params.offset.unwrap_or(0).max(0);
 
-    let rows = sqlx::query("SELECT id, full_name, birth_date, death_date FROM persons ORDER BY full_name LIMIT $1 OFFSET $2")
+    let rows = sqlx::query("SELECT id, full_name, birth_date, death_date, gender, married, avatar_url FROM persons ORDER BY full_name LIMIT $1 OFFSET $2")
         .bind(limit)
         .bind(offset)
         .fetch_all(&state.db)
@@ -55,6 +55,9 @@ pub async fn list_persons(
             full_name: row.get("full_name"),
             birth_date: row.get("birth_date"),
             death_date: row.get("death_date"),
+            gender: row.get("gender"),
+            married: row.get("married"),
+            avatar_url: row.get("avatar_url"),
         }
     }).collect();
 
@@ -84,13 +87,16 @@ pub async fn create_person(
     let user_id: Uuid = user_row.get("id");
 
     let row = sqlx::query(
-        "INSERT INTO persons (id, user_id, full_name, birth_date, death_date) VALUES ($1, $2, $3, $4, $5) RETURNING id, full_name, birth_date, death_date"
+        "INSERT INTO persons (id, user_id, full_name, birth_date, death_date, gender, married, avatar_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, full_name, birth_date, death_date, gender, married, avatar_url"
     )
     .bind(id)
     .bind(user_id)
     .bind(&req.full_name)
     .bind(&req.birth_date)
     .bind(&req.death_date)
+    .bind(&req.gender)
+    .bind(&req.married)
+    .bind(&req.avatar_url)
     .fetch_one(&state.db)
     .await?;
 
@@ -99,6 +105,9 @@ pub async fn create_person(
         full_name: row.get("full_name"),
         birth_date: row.get("birth_date"),
         death_date: row.get("death_date"),
+        gender: row.get("gender"),
+        married: row.get("married"),
+        avatar_url: row.get("avatar_url"),
     };
 
     Ok((StatusCode::CREATED, Json(response)))
@@ -109,7 +118,7 @@ pub async fn get_person(
     State(state): State<Arc<AppState>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<PersonResponse>, AppError> {
-    let row = sqlx::query("SELECT id, full_name, birth_date, death_date FROM persons WHERE id = $1")
+    let row = sqlx::query("SELECT id, full_name, birth_date, death_date, gender, married, avatar_url FROM persons WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
         .await?
@@ -120,6 +129,9 @@ pub async fn get_person(
         full_name: row.get("full_name"),
         birth_date: row.get("birth_date"),
         death_date: row.get("death_date"),
+        gender: row.get("gender"),
+        married: row.get("married"),
+        avatar_url: row.get("avatar_url"),
     }))
 }
 
@@ -134,12 +146,15 @@ pub async fn update_person(
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
     let row = sqlx::query(
-        "UPDATE persons SET full_name = COALESCE($2, full_name), birth_date = COALESCE($3, birth_date), death_date = COALESCE($4, death_date) WHERE id = $1 RETURNING id, full_name, birth_date, death_date"
+        "UPDATE persons SET full_name = COALESCE($2, full_name), birth_date = COALESCE($3, birth_date), death_date = COALESCE($4, death_date), gender = COALESCE($5, gender), married = COALESCE($6, married), avatar_url = COALESCE($7, avatar_url) WHERE id = $1 RETURNING id, full_name, birth_date, death_date, gender, married, avatar_url"
     )
     .bind(id)
     .bind(&req.full_name)
     .bind(&req.birth_date)
     .bind(&req.death_date)
+    .bind(&req.gender)
+    .bind(&req.married)
+    .bind(&req.avatar_url)
     .fetch_optional(&state.db)
     .await?
     .ok_or_else(|| AppError::NotFound("Person not found".to_string()))?;
@@ -149,6 +164,9 @@ pub async fn update_person(
         full_name: row.get("full_name"),
         birth_date: row.get("birth_date"),
         death_date: row.get("death_date"),
+        gender: row.get("gender"),
+        married: row.get("married"),
+        avatar_url: row.get("avatar_url"),
     }))
 }
 
@@ -177,7 +195,7 @@ pub async fn search_persons(
     let limit = params.limit.unwrap_or(20).min(100);
     let search_query = format!("%{}%", params.q);
 
-    let rows = sqlx::query("SELECT id, full_name, birth_date, death_date FROM persons WHERE full_name ILIKE $1 ORDER BY full_name LIMIT $2")
+    let rows = sqlx::query("SELECT id, full_name, birth_date, death_date, gender, married, avatar_url FROM persons WHERE full_name ILIKE $1 ORDER BY full_name LIMIT $2")
         .bind(&search_query)
         .bind(limit)
         .fetch_all(&state.db)
@@ -194,6 +212,9 @@ pub async fn search_persons(
             full_name: row.get("full_name"),
             birth_date: row.get("birth_date"),
             death_date: row.get("death_date"),
+            gender: row.get("gender"),
+            married: row.get("married"),
+            avatar_url: row.get("avatar_url"),
         }
     }).collect();
 

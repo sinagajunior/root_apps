@@ -6,6 +6,9 @@ interface PersonNodeProps {
     status: 'pending' | 'validated'
     birthDate?: string
     deathDate?: string
+    gender?: string
+    married?: boolean
+    avatar_url?: string
   }
 }
 
@@ -17,7 +20,7 @@ export default function PersonNode({ data }: PersonNodeProps) {
     .toUpperCase()
 
   const ringColor = data.status === 'validated' ? 'ring-green-500' : 'ring-yellow-500'
-  const bgColor = data.status === 'validated' ? 'bg-green-100' : 'bg-yellow-100'
+  const bgColor = data.status === 'validated' ? 'bg-gradient-to-br from-green-100 to-green-200' : 'bg-gradient-to-br from-yellow-100 to-yellow-200'
 
   return (
     <div
@@ -28,18 +31,41 @@ export default function PersonNode({ data }: PersonNodeProps) {
     >
       <Handle type="target" position={Position.Top} />
 
-      <div
-        className={`w-24 h-24 rounded-full ${bgColor} border-4 ${ringColor} flex flex-col items-center justify-center shadow-lg hover:shadow-xl transition`}
-      >
-        <div className="text-2xl font-bold text-gray-800">{initials}</div>
-        <div className="text-xs text-center text-gray-600 max-w-20 truncate">
+      <div className="bg-white rounded-lg shadow-lg hover:shadow-2xl transition p-3 max-w-56 border-2" style={{ borderColor: data.status === 'validated' ? '#22c55e' : '#eab308' }}>
+        {/* Avatar/Initials Circle */}
+        <div
+          className={`w-16 h-16 rounded-full ${bgColor} border-4 ${ringColor} flex items-center justify-center shadow-md mx-auto mb-2 overflow-hidden`}
+        >
+          {data.avatar_url ? (
+            <img
+              src={data.avatar_url}
+              alt={data.label}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+          ) : (
+            <div className="text-lg font-bold text-gray-700">{initials}</div>
+          )}
+        </div>
+
+        {/* Name */}
+        <div className="text-sm font-semibold text-gray-800 text-center truncate">
           {data.label}
         </div>
-      </div>
 
-      <div className="text-xs text-gray-500 mt-2 text-center max-w-24 truncate">
-        {data.birthDate && `b. ${data.birthDate}`}
-        {data.deathDate && ` - d. ${data.deathDate}`}
+        {/* Gender and Status */}
+        <div className="text-xs text-gray-600 text-center mt-1">
+          {data.gender && <div>{data.gender}</div>}
+          {data.married && <div className="text-pink-500 font-semibold">💍 Married</div>}
+        </div>
+
+        {/* Dates */}
+        <div className="text-xs text-gray-500 mt-2 text-center space-y-0.5 border-t pt-2">
+          {data.birthDate && <div>Born: {data.birthDate}</div>}
+          {data.deathDate && <div className="text-gray-400">Died: {data.deathDate}</div>}
+        </div>
       </div>
 
       <Handle type="source" position={Position.Bottom} />

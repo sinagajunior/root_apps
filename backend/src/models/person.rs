@@ -10,6 +10,9 @@ pub struct Person {
     pub full_name: String,
     pub birth_date: Option<NaiveDate>,
     pub death_date: Option<NaiveDate>,
+    pub gender: Option<String>,
+    pub married: Option<bool>,
+    pub avatar_url: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -20,6 +23,9 @@ pub struct CreatePersonRequest {
     pub full_name: String,
     pub birth_date: Option<NaiveDate>,
     pub death_date: Option<NaiveDate>,
+    pub gender: Option<String>,
+    pub married: Option<bool>,
+    pub avatar_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Validate, Deserialize)]
@@ -28,6 +34,9 @@ pub struct UpdatePersonRequest {
     pub full_name: Option<String>,
     pub birth_date: Option<NaiveDate>,
     pub death_date: Option<NaiveDate>,
+    pub gender: Option<String>,
+    pub married: Option<bool>,
+    pub avatar_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -36,6 +45,9 @@ pub struct PersonResponse {
     pub full_name: String,
     pub birth_date: Option<NaiveDate>,
     pub death_date: Option<NaiveDate>,
+    pub gender: Option<String>,
+    pub married: Option<bool>,
+    pub avatar_url: Option<String>,
 }
 
 impl From<Person> for PersonResponse {
@@ -45,6 +57,9 @@ impl From<Person> for PersonResponse {
             full_name: person.full_name,
             birth_date: person.birth_date,
             death_date: person.death_date,
+            gender: person.gender,
+            married: person.married,
+            avatar_url: person.avatar_url,
         }
     }
 }
