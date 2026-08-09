@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ReactFlow, {
   Node,
   Edge,
@@ -26,6 +27,7 @@ export default function FamilyChart({
   isLoading,
   onNodeClick,
 }: FamilyChartProps) {
+  const navigate = useNavigate()
   const [nodes, , onNodesChange] = useNodesState(initialNodes)
   const [edges, , onEdgesChange] = useEdgesState(initialEdges)
 
@@ -35,8 +37,10 @@ export default function FamilyChart({
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
       onNodeClick?.(node.id)
+      // Navigate to person detail page
+      navigate(`/person/${node.id}`)
     },
-    [onNodeClick]
+    [onNodeClick, navigate]
   )
 
   if (isLoading) {

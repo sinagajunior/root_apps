@@ -1,7 +1,8 @@
 import {
+  BaseEdge,
   EdgeLabelRenderer,
-  EdgeProps,
   getStraightPath,
+  EdgeProps,
 } from 'reactflow'
 
 export interface RelationshipEdgeData {
@@ -10,6 +11,7 @@ export interface RelationshipEdgeData {
 }
 
 export default function RelationshipEdge({
+  id,
   sourceX,
   sourceY,
   targetX,
@@ -26,66 +28,60 @@ export default function RelationshipEdge({
   const isValidated = data?.status === 'validated'
   const relationshipType = data?.label?.toLowerCase() || ''
 
-  // Distinct colors for different relationship types
+  // Distinct colors and widths for different relationship types
   let stroke = '#22c55e'        // Green for sibling
   let strokeWidth = 4
-  let strokeDasharray = undefined
+  let strokeDasharray: string | undefined = undefined
 
   if (!isValidated) {
     strokeDasharray = '8,5'
-    strokeWidth = 3
+    strokeWidth = 2
   } else if (relationshipType === 'spouse') {
     stroke = '#ec1b6b'          // Hot pink for spouse
-    strokeWidth = 5
+    strokeWidth = 6
   } else if (relationshipType === 'parent' || relationshipType === 'child') {
     stroke = '#1e40af'          // Dark blue for parent/child
-    strokeWidth = 4
+    strokeWidth = 5
   }
 
   // Get display text for relationship type
   let displayLabel = data?.label || ''
   let emoji = '👥'
+  let bgColor = '#dbeafe'
 
   if (relationshipType === 'spouse') {
     emoji = '💍'
     displayLabel = 'Spouse'
+    bgColor = '#ffe0eb'
   } else if (relationshipType === 'parent') {
     emoji = '👨‍👧'
     displayLabel = 'Parent'
+    bgColor = '#dbeafe'
   } else if (relationshipType === 'child') {
     emoji = '👶'
     displayLabel = 'Child'
+    bgColor = '#dbeafe'
   } else if (relationshipType === 'sibling') {
     emoji = '👯'
     displayLabel = 'Sibling'
+    bgColor = '#dcfce7'
   }
 
   return (
     <>
-      {/* Main line */}
-      <svg
+      <BaseEdge
+        id={id}
+        path={edgePath}
         style={{
-          position: 'absolute',
-          pointerEvents: 'none',
-          overflow: 'visible',
+          stroke,
+          strokeWidth,
+          strokeDasharray,
+          transition: 'all 0.3s ease',
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))',
         }}
-        width="100%"
-        height="100%"
-      >
-        <path
-          d={edgePath}
-          stroke={stroke}
-          strokeWidth={strokeWidth}
-          strokeDasharray={strokeDasharray}
-          fill="none"
-          style={{
-            transition: 'all 0.3s ease',
-            filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.1))`,
-          }}
-        />
-      </svg>
+      />
 
-      {/* Label */}
+      {/* Label box */}
       <EdgeLabelRenderer>
         <div
           style={{
@@ -97,13 +93,22 @@ export default function RelationshipEdge({
         >
           <div
             style={{
-              background: relationshipType === 'spouse' ? '#ffe0eb' : '#dbeafe',
+              background: bgColor,
               borderColor: stroke,
               color: stroke,
+              fontSize: '14px',
+              fontWeight: 'bold',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: `2px solid ${stroke}`,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
-            className="px-4 py-2 rounded-lg text-sm font-bold border-2 shadow-md whitespace-nowrap"
           >
-            <span className="mr-1.5 text-base">{emoji}</span>
+            <span style={{ fontSize: '16px' }}>{emoji}</span>
             {displayLabel}
           </div>
         </div>
