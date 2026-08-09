@@ -19,8 +19,8 @@ export default function DashboardLayout({
   const { user, clearAuth } = useAuthStore()
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
-  // Show right panel only on family tree and admin pages
-  const showRightPanel =
+  // Show action buttons on family tree and admin pages
+  const showActionButtons =
     location.pathname === '/family-tree' ||
     location.pathname === '/admin' ||
     location.pathname === '/'
@@ -56,9 +56,9 @@ export default function DashboardLayout({
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-white shadow-lg transition-all duration-300 flex-shrink-0 overflow-hidden`}
+        } bg-white shadow-lg transition-all duration-300 flex flex-col overflow-hidden`}
       >
-        <div className="p-4 flex items-center justify-between border-b-2 border-gray-200">
+        <div className="p-4 flex items-center justify-between border-b-2 border-gray-200 flex-shrink-0">
           {sidebarOpen && (
             <h1 className="text-2xl font-bold text-gray-800">Root</h1>
           )}
@@ -71,7 +71,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Menu Items */}
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 flex-1">
           {menuItems.map((item) => (
             <button
               key={item.path}
@@ -88,8 +88,58 @@ export default function DashboardLayout({
           ))}
         </nav>
 
+        {/* Action Buttons - Show on specific routes */}
+        {showActionButtons && sidebarOpen && (
+          <div className="p-4 space-y-2 border-t-2 border-gray-200 flex-shrink-0">
+            {onAddPerson && (
+              <button
+                onClick={handleAddPerson}
+                className="w-full flex flex-col items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 active:bg-green-800 font-semibold transition-all duration-200 hover:shadow-lg"
+                title="Add a new person to your family tree"
+              >
+                <span className="text-2xl">👤</span>
+                <span className="text-sm">Add Person</span>
+              </button>
+            )}
+            {onAddFamilyMember && (
+              <button
+                onClick={handleAddFamilyMember}
+                className="w-full flex flex-col items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 active:bg-blue-800 font-semibold transition-all duration-200 hover:shadow-lg"
+                title="Add a family relationship"
+              >
+                <span className="text-2xl">🔗</span>
+                <span className="text-sm">Add Member</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Action Buttons - Compact view when sidebar collapsed */}
+        {showActionButtons && !sidebarOpen && (
+          <div className="p-2 space-y-2 border-t-2 border-gray-200 flex-shrink-0">
+            {onAddPerson && (
+              <button
+                onClick={handleAddPerson}
+                className="w-full flex items-center justify-center bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 active:bg-green-800 transition-all duration-200 hover:shadow-lg"
+                title="Add Person"
+              >
+                <span className="text-xl">👤</span>
+              </button>
+            )}
+            {onAddFamilyMember && (
+              <button
+                onClick={handleAddFamilyMember}
+                className="w-full flex items-center justify-center bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 hover:shadow-lg"
+                title="Add Member"
+              >
+                <span className="text-xl">🔗</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Logout Button at Bottom */}
-        <div className="p-4 border-t-2 border-gray-200">
+        <div className="p-4 border-t-2 border-gray-200 flex-shrink-0">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold"
@@ -123,32 +173,6 @@ export default function DashboardLayout({
           {children}
         </div>
       </main>
-
-      {/* Right Panel */}
-      {showRightPanel && (
-        <aside className="w-64 bg-white border-l border-gray-200 shadow-lg flex flex-col justify-center items-center gap-6 p-6 flex-shrink-0">
-          {onAddPerson && (
-            <button
-              onClick={handleAddPerson}
-              className="w-full flex flex-col items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 active:bg-green-800 font-semibold transition-all duration-200 hover:shadow-lg"
-              title="Add a new person to your family tree"
-            >
-              <span className="text-4xl">👤</span>
-              <span className="text-center">Add Person</span>
-            </button>
-          )}
-          {onAddFamilyMember && (
-            <button
-              onClick={handleAddFamilyMember}
-              className="w-full flex flex-col items-center justify-center gap-3 bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 active:bg-blue-800 font-semibold transition-all duration-200 hover:shadow-lg"
-              title="Add a family relationship"
-            >
-              <span className="text-4xl">🔗</span>
-              <span className="text-center">Add Member</span>
-            </button>
-          )}
-        </aside>
-      )}
     </div>
   )
 }
