@@ -37,6 +37,7 @@ function calculateHierarchicalLayout(nodes: Node[], edges: Edge[]): Node[] {
   })
 
   // Identify parent-child edges (person A is parent of person B)
+  // Only process parent relationships, ignore siblings and spouses
   edges.forEach((edge) => {
     // Check if this is a parent-child relationship
     if (edge.data?.type === 'parent' || edge.data?.relationshipType === 'parent') {
@@ -139,21 +140,9 @@ function FamilyChartContent() {
           <div className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
               <svg width="16" height="16" style={{ minWidth: '16px' }}>
-                <line x1="2" y1="8" x2="14" y2="8" stroke="#dc2626" strokeWidth="1" strokeDasharray="2,3" />
-              </svg>
-              <span>💍 Spouse</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg width="16" height="16" style={{ minWidth: '16px' }}>
                 <line x1="2" y1="8" x2="14" y2="8" stroke="#0066cc" strokeWidth="1" strokeDasharray="2,3" />
               </svg>
-              <span>👨‍👧 Parent/Child</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg width="16" height="16" style={{ minWidth: '16px' }}>
-                <line x1="2" y1="8" x2="14" y2="8" stroke="#16a34a" strokeWidth="1" strokeDasharray="2,3" />
-              </svg>
-              <span>👯 Sibling</span>
+              <span>👨‍👧 Parent-Child</span>
             </div>
           </div>
         </div>
@@ -167,7 +156,7 @@ function FamilyChartContent() {
       </Panel>
       <Panel position="bottom-left" className="space-y-2">
         <div className="bg-white p-2 rounded-lg shadow text-xs font-semibold text-gray-600">
-          <p>📊 Hierarchy: Ancestors at top → Descendants below</p>
+          <p>📊 Hierarchy: Level 0 (Root) → Descendants by Level</p>
         </div>
       </Panel>
     </>
@@ -178,19 +167,30 @@ export default function FamilyChart(props: FamilyChartProps) {
   const { nodes: initialNodes, edges: initialEdges, isLoading, onNodeClick } = props
   const navigate = useNavigate()
 
+  // Filter out sibling and spouse edges - only keep parent-child relationships
+  const filteredEdges = useMemo(
+    () =>
+      initialEdges.filter(
+        (edge) =>
+          edge.data?.type === 'parent' ||
+          edge.data?.relationshipType === 'parent'
+      ),
+    [initialEdges]
+  )
+
   // Apply hierarchical layout to initial nodes
   const layoutedNodes = useMemo(
-    () => calculateHierarchicalLayout(initialNodes, initialEdges),
-    [initialNodes, initialEdges]
+    () => calculateHierarchicalLayout(initialNodes, filteredEdges),
+    [initialNodes, filteredEdges]
   )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes)
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges)
+  const [edges, , onEdgesChange] = useEdgesState(filteredEdges)
 
   useEffect(() => {
-    const arranged = calculateHierarchicalLayout(initialNodes, initialEdges)
+    const arranged = calculateHierarchicalLayout(initialNodes, filteredEdges)
     setNodes(arranged)
-  }, [initialNodes, initialEdges, setNodes])
+  }, [initialNodes, filteredEdges, setNodes])
 
   const nodeTypes = useMemo(() => ({ personNode: PersonNode }), [])
   const edgeTypes = useMemo(() => ({ relationshipEdge: RelationshipEdge }), [])
