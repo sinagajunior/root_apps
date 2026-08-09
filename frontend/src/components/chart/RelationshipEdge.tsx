@@ -1,5 +1,4 @@
 import {
-  BaseEdge,
   EdgeLabelRenderer,
   getStraightPath,
   EdgeProps,
@@ -11,7 +10,6 @@ export interface RelationshipEdgeData {
 }
 
 export default function RelationshipEdge({
-  id,
   sourceX,
   sourceY,
   targetX,
@@ -28,20 +26,20 @@ export default function RelationshipEdge({
   const isValidated = data?.status === 'validated'
   const relationshipType = data?.label?.toLowerCase() || ''
 
-  // Distinct colors and widths for different relationship types
+  // ULTRA THICK line widths
   let stroke = '#16a34a'        // Green for sibling
-  let strokeWidth = 20
+  let strokeWidth = 35
   let strokeDasharray: string | undefined = undefined
 
   if (!isValidated) {
-    strokeDasharray = '15,10'
-    strokeWidth = 12
+    strokeDasharray = '20,15'
+    strokeWidth = 18
   } else if (relationshipType === 'spouse') {
     stroke = '#dc2626'          // Red for spouse
-    strokeWidth = 28
+    strokeWidth = 45
   } else if (relationshipType === 'parent' || relationshipType === 'child') {
     stroke = '#0066cc'          // Blue for parent/child
-    strokeWidth = 24
+    strokeWidth = 40
   }
 
   // Get display text for relationship type
@@ -69,17 +67,30 @@ export default function RelationshipEdge({
 
   return (
     <>
-      <BaseEdge
-        id={id}
-        path={edgePath}
+      {/* Main SVG line */}
+      <svg
         style={{
-          stroke,
-          strokeWidth,
-          strokeDasharray,
-          transition: 'all 0.3s ease',
-          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))',
+          position: 'absolute',
+          pointerEvents: 'none',
+          overflow: 'visible',
+          zIndex: 1,
         }}
-      />
+        width="100%"
+        height="100%"
+      >
+        <path
+          d={edgePath}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+          strokeDasharray={strokeDasharray}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))',
+          }}
+        />
+      </svg>
 
       {/* Label box */}
       <EdgeLabelRenderer>
