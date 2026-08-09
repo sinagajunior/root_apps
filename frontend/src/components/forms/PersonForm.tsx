@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,6 +19,9 @@ interface PersonFormProps {
 }
 
 export default function PersonForm({ initialPerson, onSuccess }: PersonFormProps) {
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+
   const { register, handleSubmit, formState: { errors } } = useForm<PersonFormData>({
     resolver: zodResolver(personSchema),
     defaultValues: {
@@ -32,13 +36,24 @@ export default function PersonForm({ initialPerson, onSuccess }: PersonFormProps
 
   const onSubmit = async (data: PersonFormData) => {
     try {
+      setSubmitError(null)
+      setSubmitSuccess(null)
+
       if (initialPerson) {
         await updatePerson.mutateAsync({ id: initialPerson.id, data })
+        setSubmitSuccess('Person updated successfully!')
       } else {
         await createPerson.mutateAsync(data)
+        setSubmitSuccess('Person created successfully!')
       }
-      onSuccess?.()
-    } catch (error) {
+
+      // Wait a bit before calling onSuccess to show the success message
+      setTimeout(() => {
+        onSuccess?.()
+      }, 500)
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || error?.message || 'An error occurred'
+      setSubmitError(errorMessage)
       console.error('Error saving person:', error)
     }
   }
@@ -47,6 +62,18 @@ export default function PersonForm({ initialPerson, onSuccess }: PersonFormProps
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {submitError && (
+        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {submitError}
+        </div>
+      )}
+
+      {submitSuccess && (
+        <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          {submitSuccess}
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Full Name *

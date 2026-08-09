@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCreateRelationship } from '../../hooks/useRelationships'
 import { usePersonSearch } from '../../hooks/usePersons'
 import PersonForm from '../forms/PersonForm'
@@ -20,6 +21,7 @@ interface AddRelativeModalProps {
 }
 
 export default function AddRelativeModal({ personAId, isOpen, onClose }: AddRelativeModalProps) {
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<RelationshipFormData>({
@@ -95,7 +97,7 @@ export default function AddRelativeModal({ personAId, isOpen, onClose }: AddRela
                       className="w-full text-left p-2 hover:bg-blue-100 rounded border border-gray-200"
                     >
                       {person.full_name}
-                      {person.birth_date && ` (b. ${person.birth_date})`}
+                      {person.birth_date && ` (born ${person.birth_date})`}
                     </button>
                   ))}
                   {searchPersons.data.data.length === 0 && (
@@ -142,7 +144,9 @@ export default function AddRelativeModal({ personAId, isOpen, onClose }: AddRela
             <p className="text-sm text-gray-600 mb-4">Create a new family member to add</p>
             <PersonForm
               onSuccess={() => {
-                // Form will call handlePersonCreated via mutation
+                // Invalidate persons and graph queries so data refreshes
+                queryClient.invalidateQueries({ queryKey: ['persons'] })
+                queryClient.invalidateQueries({ queryKey: ['graph'] })
                 setShowCreateForm(false)
               }}
             />
