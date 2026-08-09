@@ -30,23 +30,27 @@ function FamilyChartContent({
 }: FamilyChartProps) {
   const navigate = useNavigate()
   const { fitView } = useReactFlow()
-  const [nodes, , onNodesChange] = useNodesState(initialNodes)
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, , onEdgesChange] = useEdgesState(initialEdges)
 
   useEffect(() => {
+    setNodes(initialNodes)
     if (initialNodes.length > 0) {
-      setTimeout(() => fitView({ padding: 0.2 }), 100)
+      setTimeout(() => fitView({ padding: 0.2, maxZoom: 1 }), 150)
     }
-  }, [initialNodes, fitView])
+  }, [initialNodes, setNodes, fitView])
 
   const nodeTypes = useMemo(() => ({ personNode: PersonNode }), [])
   const edgeTypes = useMemo(() => ({ relationshipEdge: RelationshipEdge }), [])
 
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
-      onNodeClick?.(node.id)
+      console.log('Node clicked:', node.id)
+      if (onNodeClick) {
+        onNodeClick(node.id)
+      }
       // Navigate to person detail page
-      navigate(`/person/${node.id}`)
+      navigate(`/person/${node.id}`, { replace: false })
     },
     [onNodeClick, navigate]
   )
@@ -91,16 +95,16 @@ function FamilyChartContent({
           <h3 className="font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full border-2 border-pink-500"></div>
-              <span>💍 Spouse (14px)</span>
+              <div className="w-4 h-4 rounded-full border-2 border-red-600 bg-red-100"></div>
+              <span>💍 Spouse (45px)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full border-2 border-blue-600"></div>
-              <span>👨‍👧 Parent/Child (12px)</span>
+              <div className="w-4 h-4 rounded-full border-2 border-blue-600 bg-blue-100"></div>
+              <span>👨‍👧 Parent/Child (40px)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full border-2 border-green-500"></div>
-              <span>👯 Sibling (10px)</span>
+              <div className="w-4 h-4 rounded-full border-2 border-green-600 bg-green-100"></div>
+              <span>👯 Sibling (35px)</span>
             </div>
           </div>
         </div>
@@ -111,8 +115,10 @@ function FamilyChartContent({
 
 export default function FamilyChart(props: FamilyChartProps) {
   return (
-    <ReactFlow>
-      <FamilyChartContent {...props} />
-    </ReactFlow>
+    <div style={{ width: '100%', height: '100%' }}>
+      <ReactFlow>
+        <FamilyChartContent {...props} />
+      </ReactFlow>
+    </div>
   )
 }

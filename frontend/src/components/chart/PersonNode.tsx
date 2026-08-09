@@ -28,7 +28,7 @@ export default function PersonNode({ data }: PersonNodeProps) {
     : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
 
   return (
-    <div style={{ width: '280px' }}>
+    <div style={{ width: '280px', pointerEvents: 'auto' }}>
       <Handle type="target" position={Position.Top} />
 
       {/* Main Card Container */}
@@ -41,6 +41,7 @@ export default function PersonNode({ data }: PersonNodeProps) {
           border: `3px solid ${borderColor}`,
           transition: 'all 0.3s ease',
           cursor: 'pointer',
+          pointerEvents: 'auto',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.boxShadow = `0 15px 35px rgba(0, 0, 0, 0.2)`
