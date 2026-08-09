@@ -22,14 +22,13 @@ interface FamilyChartProps {
   onNodeClick?: (nodeId: string) => void
 }
 
-// Hierarchical layout algorithm to arrange nodes and prevent overlap
+// Hierarchical layout algorithm to arrange nodes with descendants below parents
 function calculateHierarchicalLayout(nodes: Node[], edges: Edge[]): Node[] {
   if (nodes.length === 0) return nodes
 
-  // Build adjacency map for hierarchy
+  // Build parent-child relationships
   const parentMap = new Map<string, Set<string>>()
   const childMap = new Map<string, Set<string>>()
-  const visitedForDepth = new Set<string>()
   const depthMap = new Map<string, number>()
 
   nodes.forEach((node) => {
@@ -37,55 +36,65 @@ function calculateHierarchicalLayout(nodes: Node[], edges: Edge[]): Node[] {
     childMap.set(node.id, new Set())
   })
 
+  // Identify parent-child edges (person A is parent of person B)
   edges.forEach((edge) => {
-    const source = edge.source
-    const target = edge.target
-    if (edge.data?.type === 'parent') {
-      parentMap.get(target)?.add(source)
-      childMap.get(source)?.add(target)
+    // Check if this is a parent-child relationship
+    if (edge.data?.type === 'parent' || edge.data?.relationshipType === 'parent') {
+      const source = edge.source as string
+      const target = edge.target as string
+
+      const targetParents = parentMap.get(target)
+      const sourceChildren = childMap.get(source)
+      if (targetParents) targetParents.add(source)
+      if (sourceChildren) sourceChildren.add(target)
     }
   })
 
-  // Calculate depth (generation level) for each node using BFS
-  function calculateDepth(nodeId: string): number {
-    if (visitedForDepth.has(nodeId)) {
-      return depthMap.get(nodeId) || 0
+  // Calculate depth for each node based on ancestors
+  function calculateDepth(nodeId: string, visited = new Set<string>()): number {
+    if (depthMap.has(nodeId)) {
+      return depthMap.get(nodeId)!
     }
 
-    visitedForDepth.add(nodeId)
-    const parents = parentMap.get(nodeId) || new Set()
+    if (visited.has(nodeId)) {
+      return 0 // Prevent infinite loops
+    }
 
-    if (parents.size === 0) {
-      depthMap.set(nodeId, 0)
+    visited.add(nodeId)
+    const parentsSet = parentMap.get(nodeId) || new Set<string>()
+    const parents: string[] = Array.from(parentsSet)
+
+    if (parents.length === 0) {
+      depthMap.set(nodeId, 0) // Root ancestor
       return 0
     }
 
-    const maxParentDepth = Math.max(
-      ...Array.from(parents).map((p) => calculateDepth(p))
-    )
+    const maxParentDepth = Math.max(0, ...parents.map((p: string) => calculateDepth(p, new Set(visited))))
     const depth = maxParentDepth + 1
     depthMap.set(nodeId, depth)
     return depth
   }
 
+  // Calculate depths for all nodes
   nodes.forEach((node) => {
     calculateDepth(node.id)
   })
 
-  // Group nodes by depth
+  // Group nodes by depth level
   const depthGroups = new Map<number, string[]>()
-  depthMap.forEach((depth, nodeId) => {
+  nodes.forEach((node) => {
+    const depth = depthMap.get(node.id) || 0
     if (!depthGroups.has(depth)) {
       depthGroups.set(depth, [])
     }
-    depthGroups.get(depth)!.push(nodeId)
+    depthGroups.get(depth)!.push(node.id)
   })
 
-  // Calculate layout positions with increased spacing for edge labels
-  // Increased spacing to prevent edge label overlap
-  const horizontalSpacing = 380  // Increased from 280 to 380
-  const verticalSpacing = 280    // Increased from 200 to 280
-  const minX = -600              // Adjusted to center better with larger spacing
+  // Calculate positions with proper hierarchy
+  const horizontalSpacing = 380    // Space between siblings
+  const verticalSpacing = 280      // Space between generations
+  const startX = -800              // Start position for centering
+  const startY = 0                 // Top position
 
   const layoutNodes = nodes.map((node) => {
     const depth = depthMap.get(node.id) || 0
@@ -93,14 +102,15 @@ function calculateHierarchicalLayout(nodes: Node[], edges: Edge[]): Node[] {
     const indexInGroup = depthGroup.indexOf(node.id)
     const groupSize = depthGroup.length
 
-    // Center nodes horizontally within their group
-    // Extra spacing ensures edge labels have room to display
-    const groupWidth = Math.max(groupSize * horizontalSpacing - horizontalSpacing, 0)
-    const x = minX + (indexInGroup * horizontalSpacing) + groupWidth / (groupSize || 1)
+    // Calculate horizontal position within group
+    // Center the group of nodes at this depth level
+    const totalGroupWidth = (groupSize - 1) * horizontalSpacing
+    const groupStartX = startX + (totalGroupWidth / 2) // Center the group
+    const x = groupStartX - (indexInGroup * horizontalSpacing)
 
-    // Position vertically by depth
-    // Increased spacing prevents vertical label overlap
-    const y = depth * verticalSpacing
+    // Calculate vertical position based on depth (generation level)
+    // Each generation is positioned lower
+    const y = startY + (depth * verticalSpacing)
 
     return {
       ...node,
@@ -148,9 +158,7 @@ function FamilyChartContent() {
           </div>
         </div>
         <button
-          onClick={() => {
-            fitView({ padding: 0.3, duration: 500 })
-          }}
+          onClick={() => fitView({ padding: 0.3, duration: 500 })}
           className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
           title="Auto-center chart and arrange nodes to show hierarchy clearly"
         >
@@ -159,7 +167,7 @@ function FamilyChartContent() {
       </Panel>
       <Panel position="bottom-left" className="space-y-2">
         <div className="bg-white p-2 rounded-lg shadow text-xs font-semibold text-gray-600">
-          <p>📊 Hierarchical view: Ancestors at top → Descendants at bottom</p>
+          <p>📊 Hierarchy: Ancestors at top → Descendants below</p>
         </div>
       </Panel>
     </>
