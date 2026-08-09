@@ -72,18 +72,23 @@ export default function FamilyTreePage() {
               edges={flowData.edges}
               isLoading={isLoading}
             />
-            <div className="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Depth: {degrees}
+            <div className="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow-lg border-2 border-blue-500">
+              <label className="block text-sm font-bold text-gray-800 mb-3">
+                📊 Generations: <span className="text-blue-600">{degrees}</span>
               </label>
-              <input
-                type="range"
-                min="1"
-                max="5"
-                value={degrees}
-                onChange={(e) => setDegrees(Number(e.target.value))}
-                className="w-32"
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="1"
+                  max="7"
+                  value={degrees}
+                  onChange={(e) => setDegrees(Number(e.target.value))}
+                  className="w-40 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+              <div className="text-xs text-gray-500 mt-2">
+                1 = Just you • 7 = Full tree
+              </div>
             </div>
           </>
         ) : (

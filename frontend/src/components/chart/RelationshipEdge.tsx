@@ -30,8 +30,35 @@ export default function RelationshipEdge({
   })
 
   const isValidated = data?.status === 'validated'
-  const strokeDasharray = isValidated ? undefined : '5,5'
-  const stroke = isValidated ? '#16a34a' : '#eab308'
+  const relationshipType = data?.label?.toLowerCase() || ''
+
+  // Determine styling based on relationship type
+  let stroke = '#10b981'
+  let strokeWidth = 2
+  let strokeDasharray = undefined
+
+  if (!isValidated) {
+    stroke = '#f59e0b'
+    strokeDasharray = '5,5'
+  } else if (relationshipType === 'spouse') {
+    stroke = '#ec4899'
+    strokeWidth = 3
+  } else if (relationshipType === 'parent' || relationshipType === 'child') {
+    stroke = '#3b82f6'
+    strokeWidth = 2
+  }
+
+  // Get emoji for relationship type
+  let emoji = '👥'
+  if (relationshipType === 'spouse') {
+    emoji = '💍'
+  } else if (relationshipType === 'parent') {
+    emoji = '👨‍👧'
+  } else if (relationshipType === 'child') {
+    emoji = '👶'
+  } else if (relationshipType === 'sibling') {
+    emoji = '👯'
+  }
 
   return (
     <>
@@ -40,8 +67,9 @@ export default function RelationshipEdge({
         path={edgePath}
         style={{
           stroke,
-          strokeWidth: 2,
+          strokeWidth,
           strokeDasharray,
+          transition: 'all 0.3s ease',
         }}
       />
       <EdgeLabelRenderer>
@@ -53,7 +81,15 @@ export default function RelationshipEdge({
           }}
           className="nodrag nopan"
         >
-          <div className="bg-white px-2 py-1 rounded text-xs font-semibold text-gray-700 border border-gray-300 shadow-md">
+          <div
+            style={{
+              background: relationshipType === 'spouse' ? '#fce7f3' : '#eff6ff',
+              borderColor: stroke,
+              color: stroke,
+            }}
+            className="px-3 py-1.5 rounded-full text-xs font-bold border-2 shadow-lg whitespace-nowrap"
+          >
+            <span className="mr-1">{emoji}</span>
             {data?.label}
           </div>
         </div>

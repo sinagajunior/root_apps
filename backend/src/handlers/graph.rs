@@ -28,8 +28,8 @@ pub async fn get_subgraph(
     Path(person_id): Path<Uuid>,
     Query(params): Query<SubgraphQuery>,
 ) -> Result<Json<SubgraphResponse>, AppError> {
-    // Validate and set degrees (1-5 range, default 3)
-    let degrees = params.degrees.unwrap_or(3).max(1).min(5);
+    // Validate and set degrees (1-7 range for 7 generations, default 3)
+    let degrees = params.degrees.unwrap_or(3).max(1).min(7);
 
     // Use PostgreSQL recursive CTE to find all persons within N degrees
     let person_rows = sqlx::query(
