@@ -17,8 +17,10 @@ export interface FlowEdge {
   id: string
   source: string
   target: string
-  label: string
-  status: 'pending' | 'validated'
+  data: {
+    label: string
+    status: 'pending' | 'validated'
+  }
   animated?: boolean
 }
 
@@ -51,8 +53,10 @@ export function transformToFlowGraph(
     type: 'relationshipEdge',
     source: rel.person_a_id,
     target: rel.person_b_id,
-    label: rel.relationship_type,
-    status: rel.status as 'pending' | 'validated',
+    data: {
+      label: rel.relationship_type.charAt(0).toUpperCase() + rel.relationship_type.slice(1),
+      status: rel.status as 'pending' | 'validated',
+    },
     animated: rel.status === 'pending',
   }))
 

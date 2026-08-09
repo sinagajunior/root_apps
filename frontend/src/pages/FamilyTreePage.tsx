@@ -9,7 +9,7 @@ import NotificationBell from '../components/NotificationBell'
 export default function FamilyTreePage() {
   const { user } = useAuthStore()
   const [showAddModal, setShowAddModal] = useState(false)
-  const [degrees, setDegrees] = useState(3)
+  const [degrees, setDegrees] = useState(1)
 
   // Fetch user's persons
   const { data: personsData, isLoading: personsLoading } = usePersonsList(100, 0)

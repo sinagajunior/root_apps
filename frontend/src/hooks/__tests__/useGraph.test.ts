@@ -151,7 +151,7 @@ describe('useGraph transformToFlowGraph', () => {
 
     expect(result.nodes).toHaveLength(4)
     expect(result.edges).toHaveLength(3)
-    expect(result.edges[0].status).toBe('validated')
+    expect(result.edges[0].data.status).toBe('validated')
     expect(result.edges[2].animated).toBe(true) // pending edge
   })
 })
