@@ -25,12 +25,97 @@ export interface FlowEdge {
 }
 
 /**
+ * Calculate hierarchical layout for family tree
+ */
+function calculateNodePositions(
+  persons: any[],
+  relationships: any[]
+): Map<string, { x: number; y: number }> {
+  const positions = new Map<string, { x: number; y: number }>()
+
+  // Build adjacency information
+  const childrenOf = new Map<string, string[]>()
+  const parentsOf = new Map<string, string[]>()
+  const spouseOf = new Map<string, string | null>()
+
+  persons.forEach((p) => {
+    childrenOf.set(p.id, [])
+    parentsOf.set(p.id, [])
+    spouseOf.set(p.id, null)
+  })
+
+  relationships.forEach((rel) => {
+    if (rel.relationship_type === 'parent') {
+      childrenOf.get(rel.person_a_id)?.push(rel.person_b_id)
+      parentsOf.get(rel.person_b_id)?.push(rel.person_a_id)
+    } else if (rel.relationship_type === 'spouse') {
+      spouseOf.set(rel.person_a_id, rel.person_b_id)
+      spouseOf.set(rel.person_b_id, rel.person_a_id)
+    }
+  })
+
+  // Find root person (person with no parents or the first one)
+  let rootId = persons[0].id
+  for (const person of persons) {
+    if ((parentsOf.get(person.id) ?? []).length === 0) {
+      rootId = person.id
+      break
+    }
+  }
+
+  // Hierarchical positioning: generations as levels
+  const generationOf = new Map<string, number>()
+  const visited = new Set<string>()
+
+  function assignGeneration(personId: string, gen: number) {
+    if (visited.has(personId)) return
+    visited.add(personId)
+    generationOf.set(personId, gen)
+
+    const parents = parentsOf.get(personId) ?? []
+    parents.forEach((pId) => assignGeneration(pId, gen + 1))
+
+    const children = childrenOf.get(personId) ?? []
+    children.forEach((cId) => assignGeneration(cId, gen - 1))
+  }
+
+  assignGeneration(rootId, 0)
+
+  // Group persons by generation
+  const byGeneration = new Map<number, string[]>()
+  generationOf.forEach((gen, personId) => {
+    if (!byGeneration.has(gen)) byGeneration.set(gen, [])
+    byGeneration.get(gen)!.push(personId)
+  })
+
+  // Position nodes: y by generation, x spread within generation
+  const spacing = 350
+  const verticalSpacing = 300
+
+  byGeneration.forEach((personIds, gen) => {
+    const y = gen * verticalSpacing
+    const totalWidth = (personIds.length - 1) * spacing
+    const startX = -totalWidth / 2
+
+    personIds.forEach((personId, index) => {
+      const x = startX + index * spacing
+      positions.set(personId, { x, y })
+    })
+  })
+
+  return positions
+}
+
+/**
  * Transform API response to react-flow format
  */
 export function transformToFlowGraph(
   data: SubgraphResponse
 ): { nodes: FlowNode[]; edges: FlowEdge[] } {
-  const nodes: FlowNode[] = data.persons.map((person, index) => ({
+  // Calculate hierarchical positions
+  const positions = calculateNodePositions(data.persons, data.relationships)
+
+  const nodes: FlowNode[] = data.persons.map((person) => ({
     id: person.id,
     type: 'personNode',
     data: {
@@ -42,10 +127,7 @@ export function transformToFlowGraph(
       married: person.married,
       avatar_url: person.avatar_url,
     },
-    position: {
-      x: (index % 5) * 250,
-      y: Math.floor(index / 5) * 250,
-    },
+    position: positions.get(person.id) || { x: 0, y: 0 },
   }))
 
   const edges: FlowEdge[] = data.relationships.map((rel) => ({
