@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,6 +12,7 @@ const editPersonSchema = z.object({
   death_date: z.string().optional(),
   gender: z.string().optional(),
   married: z.boolean().optional(),
+  avatar_url: z.string().optional(),
 })
 
 type EditPersonFormData = z.infer<typeof editPersonSchema>
@@ -30,12 +31,15 @@ export default function PersonEditModal({
   onSave,
 }: PersonEditModalProps) {
   const queryClient = useQueryClient()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
+  const [previewAvatar, setPreviewAvatar] = useState<string>(person.avatar_url || '')
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<EditPersonFormData>({
     resolver: zodResolver(editPersonSchema),
     defaultValues: {
@@ -44,8 +48,22 @@ export default function PersonEditModal({
       death_date: person.death_date || '',
       gender: person.gender || '',
       married: person.married || false,
+      avatar_url: person.avatar_url || '',
     },
   })
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64 = reader.result as string
+      setPreviewAvatar(base64)
+      setValue('avatar_url', base64)
+    }
+    reader.readAsDataURL(file)
+  }
 
   const updateMutation = useMutation({
     mutationFn: async (data: EditPersonFormData) => {
@@ -88,6 +106,35 @@ export default function PersonEditModal({
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Avatar Upload */}
+          <div className="text-center">
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="mx-auto w-32 h-32 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all overflow-hidden"
+            >
+              {previewAvatar ? (
+                <img
+                  src={previewAvatar}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-center">
+                  <div className="text-3xl mb-2">📷</div>
+                  <div className="text-xs text-gray-600">Click to upload</div>
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+            <p className="text-xs text-gray-500 mt-2">Click avatar to change photo</p>
+          </div>
+
           {/* Full Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">

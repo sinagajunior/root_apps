@@ -94,8 +94,8 @@ function calculateNodePositions(
   })
 
   // Position nodes: y by generation, x spread within generation
-  const spacing = 450  // Increased from 350
-  const verticalSpacing = 400  // Increased from 300
+  const spacing = 500  // Horizontal spacing between siblings
+  const verticalSpacing = 450  // Vertical spacing between generations
 
   byGeneration.forEach((personIds, gen) => {
     const y = gen * verticalSpacing

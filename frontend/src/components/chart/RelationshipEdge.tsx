@@ -29,19 +29,19 @@ export default function RelationshipEdge({
   const relationshipType = data?.label?.toLowerCase() || ''
 
   // Distinct colors and widths for different relationship types
-  let stroke = '#22c55e'        // Green for sibling
-  let strokeWidth = 10
+  let stroke = '#16a34a'        // Green for sibling
+  let strokeWidth = 20
   let strokeDasharray: string | undefined = undefined
 
   if (!isValidated) {
-    strokeDasharray = '10,8'
-    strokeWidth = 6
-  } else if (relationshipType === 'spouse') {
-    stroke = '#ec1b6b'          // Hot pink for spouse
-    strokeWidth = 14
-  } else if (relationshipType === 'parent' || relationshipType === 'child') {
-    stroke = '#1e40af'          // Dark blue for parent/child
+    strokeDasharray = '15,10'
     strokeWidth = 12
+  } else if (relationshipType === 'spouse') {
+    stroke = '#dc2626'          // Red for spouse
+    strokeWidth = 28
+  } else if (relationshipType === 'parent' || relationshipType === 'child') {
+    stroke = '#0066cc'          // Blue for parent/child
+    strokeWidth = 24
   }
 
   // Get display text for relationship type
