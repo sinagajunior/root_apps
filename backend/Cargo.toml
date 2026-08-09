@@ -1,0 +1,35 @@
+[package]
+name = "root-backend"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "root-backend"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+axum = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+validator = { workspace = true }
+jsonwebtoken = { workspace = true }
+oauth2 = { workspace = true }
+reqwest = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+dotenv = { workspace = true }
+lazy_static = { workspace = true }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+headers = "0.4"
+
+[dev-dependencies]

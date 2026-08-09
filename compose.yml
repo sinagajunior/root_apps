@@ -1,0 +1,62 @@
+name: root-app
+
+services:
+  postgres:
+    image: docker.io/postgres:16-alpine
+    environment:
+      POSTGRES_USER: root_user
+      POSTGRES_PASSWORD: root_pass
+      POSTGRES_DB: root_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data:Z
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root_user -d root_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres_test:
+    image: docker.io/postgres:16-alpine
+    environment:
+      POSTGRES_USER: root_user
+      POSTGRES_PASSWORD: root_pass
+      POSTGRES_DB: root_db_test
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data:Z
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root_user -d root_db_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Containerfile.backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://root_user:root_pass@postgres:5432/root_db
+      HOST: 0.0.0.0
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Containerfile.frontend
+    ports:
+      - "8000:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  pgdata_test:
