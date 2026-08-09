@@ -51,12 +51,12 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-row">
-      {/* Sidebar */}
-      <div
-        className={`bg-white shadow-lg transition-all duration-300 ${
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar - Left Panel */}
+      <aside
+        className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } flex-shrink-0`}
+        } bg-white shadow-lg transition-all duration-300 flex-shrink-0 overflow-hidden`}
       >
         <div className="p-4 flex items-center justify-between border-b-2 border-gray-200">
           {sidebarOpen && (
@@ -64,7 +64,7 @@ export default function DashboardLayout({
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
           >
             {sidebarOpen ? '◀' : '▶'}
           </button>
@@ -89,7 +89,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* Logout Button at Bottom */}
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="p-4 border-t-2 border-gray-200">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold"
@@ -98,53 +98,56 @@ export default function DashboardLayout({
             {sidebarOpen && <span>Logout</span>}
           </button>
         </div>
-      </div>
+      </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navigation */}
-        <div className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <header className="bg-white shadow flex-shrink-0">
+          <div className="px-4 py-4 flex justify-between items-center">
             <h2 className="text-3xl font-bold text-gray-800">
               {location.pathname === '/family-tree' && '🌳 Family Tree'}
               {location.pathname === '/admin' && '⚙️ Admin Dashboard'}
               {location.pathname === '/settings' && '⚡ Settings'}
+              {location.pathname === '/' && '🌳 Family Tree'}
             </h2>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{user?.name}</span>
               <NotificationBell />
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Page Content */}
+        {/* Content Area */}
         <div className="flex-1 overflow-auto">
           {children}
         </div>
-      </div>
+      </main>
 
       {/* Right Panel */}
       {showRightPanel && (
-        <div className="w-64 bg-white shadow-lg border-l border-gray-200 flex flex-col justify-center items-center gap-4 p-6 flex-shrink-0">
+        <aside className="w-64 bg-white border-l border-gray-200 shadow-lg flex flex-col justify-center items-center gap-6 p-6 flex-shrink-0">
           {onAddPerson && (
             <button
               onClick={handleAddPerson}
-              className="w-full flex flex-col items-center justify-center gap-2 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 active:bg-green-800 font-semibold transition-all duration-200 transform hover:scale-105"
+              className="w-full flex flex-col items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 active:bg-green-800 font-semibold transition-all duration-200 hover:shadow-lg"
+              title="Add a new person to your family tree"
             >
-              <span className="text-3xl">👤</span>
-              <span>Add Person</span>
+              <span className="text-4xl">👤</span>
+              <span className="text-center">Add Person</span>
             </button>
           )}
           {onAddFamilyMember && (
             <button
               onClick={handleAddFamilyMember}
-              className="w-full flex flex-col items-center justify-center gap-2 bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 active:bg-blue-800 font-semibold transition-all duration-200 transform hover:scale-105"
+              className="w-full flex flex-col items-center justify-center gap-3 bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 active:bg-blue-800 font-semibold transition-all duration-200 hover:shadow-lg"
+              title="Add a family relationship"
             >
-              <span className="text-3xl">🔗</span>
-              <span>Add Member</span>
+              <span className="text-4xl">🔗</span>
+              <span className="text-center">Add Member</span>
             </button>
           )}
-        </div>
+        </aside>
       )}
     </div>
   )

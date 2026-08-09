@@ -35,33 +35,31 @@ export default function FamilyTreePage() {
       onAddPerson={() => setShowAddPersonModal(true)}
       onAddFamilyMember={() => setShowAddRelativeModal(true)}
     >
-      <div className="h-screen bg-white relative">
+      <div className="w-full h-full bg-white relative flex flex-col items-center justify-center">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading family tree...</p>
-            </div>
+          <div className="flex flex-col items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-600">Loading family tree...</p>
           </div>
         ) : !personsData?.data || personsData.data.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <p className="text-gray-600 mb-4">Add a person to get started</p>
-              <button
-                onClick={() => setShowAddPersonModal(true)}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
-              >
-                + New Person
-              </button>
-            </div>
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-gray-600 mb-4">Add a person to get started</p>
+            <button
+              onClick={() => setShowAddPersonModal(true)}
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+            >
+              + New Person
+            </button>
           </div>
         ) : flowData ? (
           <>
-            <FamilyChart
-              nodes={flowData.nodes}
-              edges={flowData.edges}
-              isLoading={isLoading}
-            />
+            <div className="w-full h-full">
+              <FamilyChart
+                nodes={flowData.nodes}
+                edges={flowData.edges}
+                isLoading={isLoading}
+              />
+            </div>
             <div className="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow-lg border-2 border-blue-500 z-30">
               <label className="block text-sm font-bold text-gray-800 mb-3">
                 📊 Generations: <span className="text-blue-600">{degrees}</span>
@@ -82,9 +80,7 @@ export default function FamilyTreePage() {
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-600">No family members found</p>
-          </div>
+          <p className="text-gray-600">No family members found</p>
         )}
       </div>
 
