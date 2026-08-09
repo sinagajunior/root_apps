@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ReactFlow, {
   Node,
@@ -9,6 +9,7 @@ import ReactFlow, {
   useEdgesState,
   MiniMap,
   Panel,
+  useReactFlow,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import PersonNode from './PersonNode'
@@ -21,15 +22,22 @@ interface FamilyChartProps {
   onNodeClick?: (nodeId: string) => void
 }
 
-export default function FamilyChart({
+function FamilyChartContent({
   nodes: initialNodes,
   edges: initialEdges,
   isLoading,
   onNodeClick,
 }: FamilyChartProps) {
   const navigate = useNavigate()
+  const { fitView } = useReactFlow()
   const [nodes, , onNodesChange] = useNodesState(initialNodes)
   const [edges, , onEdgesChange] = useEdgesState(initialEdges)
+
+  useEffect(() => {
+    if (initialNodes.length > 0) {
+      setTimeout(() => fitView({ padding: 0.2 }), 100)
+    }
+  }, [initialNodes, fitView])
 
   const nodeTypes = useMemo(() => ({ personNode: PersonNode }), [])
   const edgeTypes = useMemo(() => ({ relationshipEdge: RelationshipEdge }), [])
@@ -74,7 +82,6 @@ export default function FamilyChart({
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       onNodeClick={handleNodeClick}
-      fitView
     >
       <Background />
       <Controls />
@@ -84,16 +91,28 @@ export default function FamilyChart({
           <h3 className="font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-100 rounded border-2 border-green-500"></div>
-              <span>Validated</span>
+              <div className="w-3 h-3 rounded-full border-2 border-pink-500"></div>
+              <span>💍 Spouse (14px)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-100 rounded border-2 border-yellow-500"></div>
-              <span>Pending</span>
+              <div className="w-3 h-3 rounded-full border-2 border-blue-600"></div>
+              <span>👨‍👧 Parent/Child (12px)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full border-2 border-green-500"></div>
+              <span>👯 Sibling (10px)</span>
             </div>
           </div>
         </div>
       </Panel>
+    </ReactFlow>
+  )
+}
+
+export default function FamilyChart(props: FamilyChartProps) {
+  return (
+    <ReactFlow>
+      <FamilyChartContent {...props} />
     </ReactFlow>
   )
 }

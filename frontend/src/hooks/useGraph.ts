@@ -9,6 +9,11 @@ export interface FlowNode {
     status: 'pending' | 'validated'
     birthDate?: string
     deathDate?: string
+    gender?: string
+    married?: boolean
+    avatar_url?: string
+    spouse?: string
+    children?: string[]
   }
   position: { x: number; y: number }
 }
@@ -89,8 +94,8 @@ function calculateNodePositions(
   })
 
   // Position nodes: y by generation, x spread within generation
-  const spacing = 350
-  const verticalSpacing = 300
+  const spacing = 450  // Increased from 350
+  const verticalSpacing = 400  // Increased from 300
 
   byGeneration.forEach((personIds, gen) => {
     const y = gen * verticalSpacing
@@ -115,6 +120,23 @@ export function transformToFlowGraph(
   // Calculate hierarchical positions
   const positions = calculateNodePositions(data.persons, data.relationships)
 
+  // Build lookup maps for relationships
+  const spouseOf = new Map<string, string>()
+  const childrenOf = new Map<string, string[]>()
+
+  data.persons.forEach((p) => {
+    childrenOf.set(p.id, [])
+  })
+
+  data.relationships.forEach((rel) => {
+    if (rel.relationship_type === 'spouse') {
+      spouseOf.set(rel.person_a_id, rel.person_b_id)
+      spouseOf.set(rel.person_b_id, rel.person_a_id)
+    } else if (rel.relationship_type === 'parent') {
+      childrenOf.get(rel.person_a_id)?.push(rel.person_b_id)
+    }
+  })
+
   const nodes: FlowNode[] = data.persons.map((person) => ({
     id: person.id,
     type: 'personNode',
@@ -126,6 +148,8 @@ export function transformToFlowGraph(
       gender: person.gender,
       married: person.married,
       avatar_url: person.avatar_url,
+      spouse: spouseOf.get(person.id),
+      children: childrenOf.get(person.id) || [],
     },
     position: positions.get(person.id) || { x: 0, y: 0 },
   }))

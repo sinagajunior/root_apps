@@ -9,6 +9,8 @@ interface PersonNodeProps {
     gender?: string
     married?: boolean
     avatar_url?: string
+    spouse?: string
+    children?: string[]
   }
 }
 
@@ -159,6 +161,30 @@ export default function PersonNode({ data }: PersonNodeProps) {
           )}
           {data.deathDate && (
             <div style={{ color: '#9ca3af' }}>🪦 Died: {data.deathDate}</div>
+          )}
+        </div>
+
+        {/* Spouse & Children Info */}
+        <div
+          style={{
+            marginTop: '12px',
+            padding: '8px',
+            background: '#f3f4f6',
+            borderRadius: '8px',
+            fontSize: '12px',
+            color: '#374151',
+            textAlign: 'center',
+            lineHeight: '1.5',
+          }}
+        >
+          {data.spouse && (
+            <div>💍 Has Spouse</div>
+          )}
+          {data.children && data.children.length > 0 && (
+            <div>👶 {data.children.length} child{data.children.length !== 1 ? 'ren' : ''}</div>
+          )}
+          {!data.spouse && (!data.children || data.children.length === 0) && (
+            <div style={{ color: '#9ca3af' }}>—</div>
           )}
         </div>
 
