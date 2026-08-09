@@ -22,6 +22,96 @@ interface FamilyChartProps {
   onNodeClick?: (nodeId: string) => void
 }
 
+// Hierarchical layout algorithm to arrange nodes and prevent overlap
+function calculateHierarchicalLayout(nodes: Node[], edges: Edge[]): Node[] {
+  if (nodes.length === 0) return nodes
+
+  // Build adjacency map for hierarchy
+  const parentMap = new Map<string, Set<string>>()
+  const childMap = new Map<string, Set<string>>()
+  const visitedForDepth = new Set<string>()
+  const depthMap = new Map<string, number>()
+
+  nodes.forEach((node) => {
+    parentMap.set(node.id, new Set())
+    childMap.set(node.id, new Set())
+  })
+
+  edges.forEach((edge) => {
+    const source = edge.source
+    const target = edge.target
+    if (edge.data?.type === 'parent') {
+      parentMap.get(target)?.add(source)
+      childMap.get(source)?.add(target)
+    }
+  })
+
+  // Calculate depth (generation level) for each node using BFS
+  function calculateDepth(nodeId: string): number {
+    if (visitedForDepth.has(nodeId)) {
+      return depthMap.get(nodeId) || 0
+    }
+
+    visitedForDepth.add(nodeId)
+    const parents = parentMap.get(nodeId) || new Set()
+
+    if (parents.size === 0) {
+      depthMap.set(nodeId, 0)
+      return 0
+    }
+
+    const maxParentDepth = Math.max(
+      ...Array.from(parents).map((p) => calculateDepth(p))
+    )
+    const depth = maxParentDepth + 1
+    depthMap.set(nodeId, depth)
+    return depth
+  }
+
+  nodes.forEach((node) => {
+    calculateDepth(node.id)
+  })
+
+  // Group nodes by depth
+  const depthGroups = new Map<number, string[]>()
+  depthMap.forEach((depth, nodeId) => {
+    if (!depthGroups.has(depth)) {
+      depthGroups.set(depth, [])
+    }
+    depthGroups.get(depth)!.push(nodeId)
+  })
+
+  // Calculate layout positions
+  const horizontalSpacing = 280
+  const verticalSpacing = 200
+  const minX = -500
+
+  const layoutNodes = nodes.map((node) => {
+    const depth = depthMap.get(node.id) || 0
+    const depthGroup = depthGroups.get(depth) || []
+    const indexInGroup = depthGroup.indexOf(node.id)
+    const groupSize = depthGroup.length
+
+    // Center nodes horizontally within their group
+    const groupWidth = Math.max(groupSize * horizontalSpacing - horizontalSpacing, 0)
+    const x = minX + (indexInGroup * horizontalSpacing) + groupWidth / (groupSize || 1)
+
+    // Position vertically by depth
+    const y = depth * verticalSpacing
+
+    return {
+      ...node,
+      position: { x, y },
+      data: {
+        ...node.data,
+        label: node.data?.label || node.id,
+      },
+    }
+  })
+
+  return layoutNodes
+}
+
 function FamilyChartContent() {
   const { fitView } = useReactFlow()
 
@@ -55,11 +145,13 @@ function FamilyChartContent() {
           </div>
         </div>
         <button
-          onClick={() => fitView({ padding: 0.2, duration: 500 })}
+          onClick={() => {
+            fitView({ padding: 0.3, duration: 500 })
+          }}
           className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-          title="Auto-center chart"
+          title="Auto-center chart and arrange nodes to show hierarchy clearly"
         >
-          🎯 Center
+          🎯 Center & Arrange
         </button>
       </Panel>
       <Panel position="bottom-left" className="space-y-2">
@@ -74,12 +166,20 @@ function FamilyChartContent() {
 export default function FamilyChart(props: FamilyChartProps) {
   const { nodes: initialNodes, edges: initialEdges, isLoading, onNodeClick } = props
   const navigate = useNavigate()
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+
+  // Apply hierarchical layout to initial nodes
+  const layoutedNodes = useMemo(
+    () => calculateHierarchicalLayout(initialNodes, initialEdges),
+    [initialNodes, initialEdges]
+  )
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes)
   const [edges, , onEdgesChange] = useEdgesState(initialEdges)
 
   useEffect(() => {
-    setNodes(initialNodes)
-  }, [initialNodes, setNodes])
+    const arranged = calculateHierarchicalLayout(initialNodes, initialEdges)
+    setNodes(arranged)
+  }, [initialNodes, initialEdges, setNodes])
 
   const nodeTypes = useMemo(() => ({ personNode: PersonNode }), [])
   const edgeTypes = useMemo(() => ({ relationshipEdge: RelationshipEdge }), [])

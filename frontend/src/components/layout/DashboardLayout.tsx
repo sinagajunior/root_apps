@@ -36,7 +36,6 @@ export default function DashboardLayout({
   const menuItems = [
     { label: 'Family Tree', path: '/family-tree', icon: '🌳' },
     { label: 'Admin', path: '/admin', icon: '⚙️' },
-    { label: 'Settings', path: '/settings', icon: '⚡' },
   ]
 
   const handleAddPerson = () => {
