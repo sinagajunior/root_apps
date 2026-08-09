@@ -39,11 +39,18 @@ export default function PersonForm({ initialPerson, onSuccess }: PersonFormProps
       setSubmitError(null)
       setSubmitSuccess(null)
 
+      // Convert empty strings to undefined for optional fields
+      const cleanData = {
+        full_name: data.full_name,
+        birth_date: data.birth_date || undefined,
+        death_date: data.death_date || undefined,
+      }
+
       if (initialPerson) {
-        await updatePerson.mutateAsync({ id: initialPerson.id, data })
+        await updatePerson.mutateAsync({ id: initialPerson.id, data: cleanData })
         setSubmitSuccess('Person updated successfully!')
       } else {
-        await createPerson.mutateAsync(data)
+        await createPerson.mutateAsync(cleanData)
         setSubmitSuccess('Person created successfully!')
       }
 
