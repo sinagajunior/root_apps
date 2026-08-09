@@ -13,6 +13,67 @@ use std::sync::Arc;
 use uuid::Uuid;
 use validator::Validate;
 
+/// Helper function to determine partner status based on relationships
+async fn get_partner_status(
+    person_id: Uuid,
+    gender: Option<&str>,
+    db: &sqlx::PgPool,
+) -> Result<Option<String>, AppError> {
+    // Check if person has a partner
+    let partner_result: Option<(String, String)> = sqlx::query_as(
+        "SELECT full_name, gender FROM persons WHERE id IN (
+            SELECT person_b_id FROM relationships WHERE person_a_id = $1 AND relationship_type = 'spouse' AND status <> 'rejected'
+            UNION
+            SELECT person_a_id FROM relationships WHERE person_b_id = $1 AND relationship_type = 'spouse' AND status <> 'rejected'
+        ) LIMIT 1"
+    )
+    .bind(person_id)
+    .fetch_optional(db)
+    .await?;
+
+    let status = if let Some((partner_name, _partner_gender)) = partner_result {
+        partner_name
+    } else {
+        "n/a".to_string()
+    };
+
+    Ok(Some(status))
+}
+
+/// Helper function to get father's name
+async fn get_father_info(
+    person_id: Uuid,
+    db: &sqlx::PgPool,
+) -> Result<Option<String>, AppError> {
+    let father_result: Option<(String,)> = sqlx::query_as(
+        "SELECT full_name FROM persons WHERE id IN (
+            SELECT person_a_id FROM relationships WHERE person_b_id = $1 AND relationship_type = 'parent' AND status <> 'rejected'
+        ) AND gender = 'Male' LIMIT 1"
+    )
+    .bind(person_id)
+    .fetch_optional(db)
+    .await?;
+
+    Ok(father_result.map(|(name,)| name))
+}
+
+/// Helper function to get mother's name
+async fn get_mother_info(
+    person_id: Uuid,
+    db: &sqlx::PgPool,
+) -> Result<Option<String>, AppError> {
+    let mother_result: Option<(String,)> = sqlx::query_as(
+        "SELECT full_name FROM persons WHERE id IN (
+            SELECT person_a_id FROM relationships WHERE person_b_id = $1 AND relationship_type = 'parent' AND status <> 'rejected'
+        ) AND gender = 'Female' LIMIT 1"
+    )
+    .bind(person_id)
+    .fetch_optional(db)
+    .await?;
+
+    Ok(mother_result.map(|(name,)| name))
+}
+
 #[derive(Deserialize)]
 pub struct ListQuery {
     limit: Option<i64>,
@@ -49,17 +110,28 @@ pub async fn list_persons(
         .fetch_one(&state.db)
         .await?;
 
-    let data: Vec<PersonResponse> = rows.iter().map(|row| {
-        PersonResponse {
-            id: row.get("id"),
+    let mut data: Vec<PersonResponse> = Vec::new();
+
+    for row in rows.iter() {
+        let person_id: Uuid = row.get("id");
+        let gender: Option<String> = row.get("gender");
+        let partner_status = get_partner_status(person_id, gender.as_deref(), &state.db).await?;
+        let father_info = get_father_info(person_id, &state.db).await?;
+        let mother_info = get_mother_info(person_id, &state.db).await?;
+
+        data.push(PersonResponse {
+            id: person_id,
             full_name: row.get("full_name"),
             birth_date: row.get("birth_date"),
             death_date: row.get("death_date"),
-            gender: row.get("gender"),
+            gender,
             married: row.get("married"),
             avatar_url: row.get("avatar_url"),
-        }
-    }).collect();
+            partner_status,
+            father_info,
+            mother_info,
+        });
+    }
 
     Ok(Json(ListResponse {
         data,
@@ -100,14 +172,23 @@ pub async fn create_person(
     .fetch_one(&state.db)
     .await?;
 
+    let person_id: Uuid = row.get("id");
+    let gender: Option<String> = row.get("gender");
+    let partner_status = get_partner_status(person_id, gender.as_deref(), &state.db).await?;
+    let father_info = get_father_info(person_id, &state.db).await?;
+    let mother_info = get_mother_info(person_id, &state.db).await?;
+
     let response = PersonResponse {
-        id: row.get("id"),
+        id: person_id,
         full_name: row.get("full_name"),
         birth_date: row.get("birth_date"),
         death_date: row.get("death_date"),
-        gender: row.get("gender"),
+        gender,
         married: row.get("married"),
         avatar_url: row.get("avatar_url"),
+        partner_status,
+        father_info,
+        mother_info,
     };
 
     Ok((StatusCode::CREATED, Json(response)))
@@ -124,14 +205,22 @@ pub async fn get_person(
         .await?
         .ok_or_else(|| AppError::NotFound("Person not found".to_string()))?;
 
+    let gender: Option<String> = row.get("gender");
+    let partner_status = get_partner_status(id, gender.as_deref(), &state.db).await?;
+    let father_info = get_father_info(id, &state.db).await?;
+    let mother_info = get_mother_info(id, &state.db).await?;
+
     Ok(Json(PersonResponse {
         id: row.get("id"),
         full_name: row.get("full_name"),
         birth_date: row.get("birth_date"),
         death_date: row.get("death_date"),
-        gender: row.get("gender"),
+        gender,
         married: row.get("married"),
         avatar_url: row.get("avatar_url"),
+        partner_status,
+        father_info,
+        mother_info,
     }))
 }
 
@@ -159,14 +248,23 @@ pub async fn update_person(
     .await?
     .ok_or_else(|| AppError::NotFound("Person not found".to_string()))?;
 
+    let person_id: Uuid = row.get("id");
+    let gender: Option<String> = row.get("gender");
+    let partner_status = get_partner_status(person_id, gender.as_deref(), &state.db).await?;
+    let father_info = get_father_info(person_id, &state.db).await?;
+    let mother_info = get_mother_info(person_id, &state.db).await?;
+
     Ok(Json(PersonResponse {
-        id: row.get("id"),
+        id: person_id,
         full_name: row.get("full_name"),
         birth_date: row.get("birth_date"),
         death_date: row.get("death_date"),
-        gender: row.get("gender"),
+        gender,
         married: row.get("married"),
         avatar_url: row.get("avatar_url"),
+        partner_status,
+        father_info,
+        mother_info,
     }))
 }
 
@@ -206,17 +304,28 @@ pub async fn search_persons(
         .fetch_one(&state.db)
         .await?;
 
-    let data: Vec<PersonResponse> = rows.iter().map(|row| {
-        PersonResponse {
-            id: row.get("id"),
+    let mut data: Vec<PersonResponse> = Vec::new();
+
+    for row in rows.iter() {
+        let person_id: Uuid = row.get("id");
+        let gender: Option<String> = row.get("gender");
+        let partner_status = get_partner_status(person_id, gender.as_deref(), &state.db).await?;
+        let father_info = get_father_info(person_id, &state.db).await?;
+        let mother_info = get_mother_info(person_id, &state.db).await?;
+
+        data.push(PersonResponse {
+            id: person_id,
             full_name: row.get("full_name"),
             birth_date: row.get("birth_date"),
             death_date: row.get("death_date"),
-            gender: row.get("gender"),
+            gender,
             married: row.get("married"),
             avatar_url: row.get("avatar_url"),
-        }
-    }).collect();
+            partner_status,
+            father_info,
+            mother_info,
+        });
+    }
 
     Ok(Json(ListResponse {
         data,

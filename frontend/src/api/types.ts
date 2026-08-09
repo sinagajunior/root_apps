@@ -19,6 +19,9 @@ export interface Person {
   gender?: string
   married?: boolean
   avatar_url?: string
+  partner_status?: string
+  father_info?: string
+  mother_info?: string
 }
 
 export interface CreatePersonRequest {

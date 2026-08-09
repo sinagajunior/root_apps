@@ -14,6 +14,7 @@ export interface FlowNode {
     avatar_url?: string
     spouse?: string
     children?: string[]
+    partner_status?: string
   }
   position: { x: number; y: number }
 }
@@ -94,17 +95,55 @@ function calculateNodePositions(
   })
 
   // Position nodes: y by generation, x spread within generation
-  const spacing = 500  // Horizontal spacing between siblings
-  const verticalSpacing = 450  // Vertical spacing between generations
+  const spacing = 350  // Horizontal spacing between sibling couples
+  const verticalSpacing = 320  // Vertical spacing between generations
+  const coupleSpacing = 120  // Horizontal spacing within a couple (spouse next to spouse)
 
   byGeneration.forEach((personIds, gen) => {
     const y = gen * verticalSpacing
-    const totalWidth = (personIds.length - 1) * spacing
+
+    // Group people into couples and singles
+    const couples: Array<string[]> = []
+    const singles: string[] = []
+    const processed = new Set<string>()
+
+    personIds.forEach((personId) => {
+      if (!processed.has(personId)) {
+        const spouse = spouseOf.get(personId)
+        if (spouse && personIds.includes(spouse)) {
+          couples.push([personId, spouse])
+          processed.add(personId)
+          processed.add(spouse)
+        } else {
+          singles.push(personId)
+          processed.add(personId)
+        }
+      }
+    })
+
+    // Calculate total width needed
+    const totalUnits = couples.length + singles.length
+    const totalWidth = (totalUnits - 1) * spacing
     const startX = -totalWidth / 2
 
-    personIds.forEach((personId, index) => {
-      const x = startX + index * spacing
+    let unitIndex = 0
+
+    // Position couples
+    couples.forEach((couple) => {
+      const baseX = startX + unitIndex * spacing
+      const coupleLeft = baseX - coupleSpacing / 2
+      const coupleRight = baseX + coupleSpacing / 2
+
+      positions.set(couple[0], { x: coupleLeft, y })
+      positions.set(couple[1], { x: coupleRight, y })
+      unitIndex++
+    })
+
+    // Position singles
+    singles.forEach((personId) => {
+      const x = startX + unitIndex * spacing
       positions.set(personId, { x, y })
+      unitIndex++
     })
   })
 
@@ -137,7 +176,7 @@ export function transformToFlowGraph(
     }
   })
 
-  const nodes: FlowNode[] = data.persons.map((person) => ({
+  const nodes: FlowNode[] = data.persons.map((person: any) => ({
     id: person.id,
     type: 'personNode',
     data: {
@@ -150,21 +189,37 @@ export function transformToFlowGraph(
       avatar_url: person.avatar_url,
       spouse: spouseOf.get(person.id),
       children: childrenOf.get(person.id) || [],
+      partner_status: person.partner_status,
     },
     position: positions.get(person.id) || { x: 0, y: 0 },
   }))
 
-  const edges: FlowEdge[] = data.relationships.map((rel) => ({
-    id: rel.id,
-    type: 'relationshipEdge',
-    source: rel.person_a_id,
-    target: rel.person_b_id,
-    data: {
-      label: rel.relationship_type.charAt(0).toUpperCase() + rel.relationship_type.slice(1),
-      status: rel.status as 'pending' | 'validated',
-    },
-    animated: rel.status === 'pending',
-  }))
+  const edges: FlowEdge[] = data.relationships.map((rel) => {
+    // Get labels based on relationship type
+    let label = 'Related'
+
+    if (rel.relationship_type === 'spouse') {
+      label = 'Spouse'
+    } else if (rel.relationship_type === 'parent') {
+      label = 'Parent'
+    } else if (rel.relationship_type === 'child') {
+      label = 'Child'
+    } else if (rel.relationship_type === 'sibling') {
+      label = 'Sibling'
+    }
+
+    return {
+      id: rel.id,
+      type: 'relationshipEdge',
+      source: rel.person_a_id,
+      target: rel.person_b_id,
+      data: {
+        label,
+        status: rel.status as 'pending' | 'validated',
+      },
+      animated: rel.status === 'pending',
+    }
+  })
 
   return { nodes, edges }
 }

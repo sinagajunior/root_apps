@@ -6,6 +6,7 @@ import { useAuthStore } from './store/authStore'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import FamilyTreePage from './pages/FamilyTreePage'
+import AdminPage from './pages/AdminPage'
 import InboxPage from './pages/InboxPage'
 import PersonDetailPage from './pages/PersonDetailPage'
 
@@ -16,7 +17,10 @@ const queryClient = new QueryClient()
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  return <>{children}</>
 }
 
 function App() {
@@ -38,6 +42,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <FamilyTreePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminPage />
               </ProtectedRoute>
             }
           />

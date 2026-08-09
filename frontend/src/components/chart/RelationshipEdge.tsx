@@ -26,20 +26,21 @@ export default function RelationshipEdge({
   const isValidated = data?.status === 'validated'
   const relationshipType = data?.label?.toLowerCase() || ''
 
-  // ULTRA THICK line widths
+  // Very thin dotted line widths
   let stroke = '#16a34a'        // Green for sibling
-  let strokeWidth = 35
-  let strokeDasharray: string | undefined = undefined
+  let strokeWidth = 0.8
+  let strokeDasharray = '2,3'   // Dotted pattern for all lines
 
-  if (!isValidated) {
-    strokeDasharray = '20,15'
-    strokeWidth = 18
-  } else if (relationshipType === 'spouse') {
+  if (relationshipType === 'spouse') {
     stroke = '#dc2626'          // Red for spouse
-    strokeWidth = 45
+    strokeWidth = 1
   } else if (relationshipType === 'parent' || relationshipType === 'child') {
     stroke = '#0066cc'          // Blue for parent/child
-    strokeWidth = 40
+    strokeWidth = 0.8
+  }
+
+  if (!isValidated) {
+    strokeWidth = 0.6           // Even thinner for pending
   }
 
   // Get display text for relationship type

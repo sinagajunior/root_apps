@@ -11,6 +11,7 @@ interface PersonNodeProps {
     avatar_url?: string
     spouse?: string
     children?: string[]
+    partner_status?: string
   }
 }
 
@@ -23,49 +24,46 @@ export default function PersonNode({ data }: PersonNodeProps) {
     .slice(0, 2)
 
   const borderColor = data.status === 'validated' ? '#10b981' : '#f59e0b'
-  const bgGradient = data.status === 'validated'
-    ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)'
-    : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+  const bgColor = data.status === 'validated' ? '#f0fdf4' : '#fffbeb'
 
   return (
-    <div style={{ width: '280px', pointerEvents: 'auto' }}>
+    <div style={{ width: '240px' }}>
       <Handle type="target" position={Position.Top} />
 
-      {/* Main Card Container */}
+      {/* Social Media Card Box */}
       <div
         style={{
           background: '#ffffff',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: `0 10px 25px rgba(0, 0, 0, 0.1)`,
           border: `3px solid ${borderColor}`,
-          transition: 'all 0.3s ease',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          overflow: 'hidden',
           cursor: 'pointer',
-          pointerEvents: 'auto',
+          transition: 'all 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = `0 15px 35px rgba(0, 0, 0, 0.2)`
-          e.currentTarget.style.transform = 'translateY(-5px)'
+          e.currentTarget.style.transform = 'scale(1.05)'
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.25)'
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = `0 10px 25px rgba(0, 0, 0, 0.1)`
-          e.currentTarget.style.transform = 'translateY(0)'
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)'
         }}
       >
-        {/* Avatar Circle */}
+        {/* Avatar Square - Top of Card */}
         <div
           style={{
-            width: '120px',
-            height: '120px',
-            borderRadius: '50%',
-            margin: '0 auto 16px',
-            background: bgGradient,
-            border: `4px solid ${borderColor}`,
+            width: '100%',
+            height: '160px',
+            background: bgColor,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
-            flexShrink: 0,
+            borderBottom: `2px solid ${borderColor}`,
+            padding: '16px',
           }}
         >
           {data.avatar_url ? (
@@ -73,9 +71,11 @@ export default function PersonNode({ data }: PersonNodeProps) {
               src={data.avatar_url}
               alt={data.label}
               style={{
-                width: '100%',
-                height: '100%',
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
                 objectFit: 'cover',
+                border: `3px solid ${borderColor}`,
               }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none'
@@ -84,9 +84,17 @@ export default function PersonNode({ data }: PersonNodeProps) {
           ) : (
             <div
               style={{
-                fontSize: '36px',
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                border: `3px solid ${borderColor}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#ffffff',
+                fontSize: '40px',
                 fontWeight: 'bold',
-                color: '#374151',
+                color: borderColor,
               }}
             >
               {initials}
@@ -94,114 +102,100 @@ export default function PersonNode({ data }: PersonNodeProps) {
           )}
         </div>
 
-        {/* Name */}
-        <div
-          style={{
-            fontSize: '16px',
-            fontWeight: '700',
-            color: '#1f2937',
-            textAlign: 'center',
-            marginBottom: '12px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {data.label}
-        </div>
-
-        {/* Gender */}
-        {data.gender && (
+        {/* Card Content */}
+        <div style={{ padding: '12px' }}>
+          {/* Name */}
           <div
             style={{
-              fontSize: '12px',
-              color: '#6b7280',
+              fontSize: '15px',
+              fontWeight: '700',
+              color: '#1f2937',
               textAlign: 'center',
+              marginBottom: '8px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {data.label}
+          </div>
+
+          {/* Status Badge */}
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: '600',
+              color: borderColor,
+              textAlign: 'center',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              paddingLeft: '8px',
+              paddingRight: '8px',
+              paddingTop: '4px',
+              paddingBottom: '4px',
+              backgroundColor: borderColor + '20',
+              borderRadius: '8px',
+              border: `1px solid ${borderColor}`,
               marginBottom: '8px',
             }}
           >
-            👤 {data.gender}
+            {data.status === 'validated' ? '✓ Verified' : '⏳ Pending'}
           </div>
-        )}
 
-        {/* Married Status */}
-        {data.married && (
+          {/* Info Row */}
           <div
             style={{
-              fontSize: '14px',
-              color: '#ec4899',
-              textAlign: 'center',
-              fontWeight: '600',
-              marginBottom: '12px',
+              display: 'flex',
+              justifyContent: 'space-around',
+              fontSize: '13px',
+              color: '#6b7280',
+              marginBottom: '8px',
+              paddingTop: '8px',
+              borderTop: `1px solid ${borderColor}20`,
             }}
           >
-            💍 Married
+            {data.children && data.children.length > 0 && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '18px' }}>👶</div>
+                <div style={{ fontSize: '10px' }}>{data.children.length} kids</div>
+              </div>
+            )}
+            {data.birthDate && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '18px' }}>🎂</div>
+                <div style={{ fontSize: '10px' }}>{new Date(data.birthDate).getFullYear()}</div>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Divider */}
-        <div
-          style={{
-            height: '1px',
-            background: '#e5e7eb',
-            margin: '12px 0',
-          }}
-        />
-
-        {/* Dates */}
-        <div
-          style={{
-            fontSize: '11px',
-            color: '#6b7280',
-            textAlign: 'center',
-            lineHeight: '1.6',
-          }}
-        >
-          {data.birthDate && (
-            <div>📅 Born: {data.birthDate}</div>
-          )}
-          {data.deathDate && (
-            <div style={{ color: '#9ca3af' }}>🪦 Died: {data.deathDate}</div>
-          )}
-        </div>
-
-        {/* Spouse & Children Info */}
-        <div
-          style={{
-            marginTop: '12px',
-            padding: '8px',
-            background: '#f3f4f6',
-            borderRadius: '8px',
-            fontSize: '12px',
-            color: '#374151',
-            textAlign: 'center',
-            lineHeight: '1.5',
-          }}
-        >
-          {data.spouse && (
-            <div>💍 Has Spouse</div>
-          )}
-          {data.children && data.children.length > 0 && (
-            <div>👶 {data.children.length} child{data.children.length !== 1 ? 'ren' : ''}</div>
-          )}
-          {!data.spouse && (!data.children || data.children.length === 0) && (
-            <div style={{ color: '#9ca3af' }}>—</div>
-          )}
-        </div>
-
-        {/* Status Badge */}
-        <div
-          style={{
-            marginTop: '12px',
-            textAlign: 'center',
-            fontSize: '11px',
-            fontWeight: '600',
-            color: borderColor,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}
-        >
-          {data.status === 'validated' ? '✓ Validated' : '⏳ Pending'}
+          {/* Partner Status Row */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              fontSize: '12px',
+              color: '#6b7280',
+              paddingTop: '8px',
+              paddingLeft: '8px',
+              paddingRight: '8px',
+              borderTop: `1px solid ${borderColor}20`,
+              gap: '8px',
+            }}
+          >
+            <span style={{ fontWeight: '600' }}>Partner:</span>
+            <span
+              style={{
+                fontWeight: '500',
+                color: data.partner_status && data.partner_status !== 'n/a' ? '#059669' : '#9ca3af',
+                textAlign: 'right',
+                flex: 1,
+                wordWrap: 'break-word',
+              }}
+            >
+              💍 {data.partner_status || 'n/a'}
+            </span>
+          </div>
         </div>
       </div>
 

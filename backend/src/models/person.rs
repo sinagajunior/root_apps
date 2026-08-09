@@ -48,6 +48,9 @@ pub struct PersonResponse {
     pub gender: Option<String>,
     pub married: Option<bool>,
     pub avatar_url: Option<String>,
+    pub partner_status: Option<String>,
+    pub father_info: Option<String>,
+    pub mother_info: Option<String>,
 }
 
 impl From<Person> for PersonResponse {
@@ -60,6 +63,9 @@ impl From<Person> for PersonResponse {
             gender: person.gender,
             married: person.married,
             avatar_url: person.avatar_url,
+            partner_status: None,
+            father_info: None,
+            mother_info: None,
         }
     }
 }

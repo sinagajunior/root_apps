@@ -11,6 +11,67 @@ use sqlx::Row;
 use std::sync::Arc;
 use uuid::Uuid;
 
+/// Helper function to determine partner status based on relationships
+async fn get_partner_status_for_graph(
+    person_id: Uuid,
+    gender: Option<&str>,
+    db: &sqlx::PgPool,
+) -> Result<Option<String>, AppError> {
+    // Check if person has a partner
+    let partner_result: Option<(String, String)> = sqlx::query_as(
+        "SELECT full_name, gender FROM persons WHERE id IN (
+            SELECT person_b_id FROM relationships WHERE person_a_id = $1 AND relationship_type = 'spouse' AND status <> 'rejected'
+            UNION
+            SELECT person_a_id FROM relationships WHERE person_b_id = $1 AND relationship_type = 'spouse' AND status <> 'rejected'
+        ) LIMIT 1"
+    )
+    .bind(person_id)
+    .fetch_optional(db)
+    .await?;
+
+    let status = if let Some((partner_name, _partner_gender)) = partner_result {
+        partner_name
+    } else {
+        "n/a".to_string()
+    };
+
+    Ok(Some(status))
+}
+
+/// Helper function to get father's name for graph
+async fn get_father_info_for_graph(
+    person_id: Uuid,
+    db: &sqlx::PgPool,
+) -> Result<Option<String>, AppError> {
+    let father_result: Option<(String,)> = sqlx::query_as(
+        "SELECT full_name FROM persons WHERE id IN (
+            SELECT person_a_id FROM relationships WHERE person_b_id = $1 AND relationship_type = 'parent' AND status <> 'rejected'
+        ) AND gender = 'Male' LIMIT 1"
+    )
+    .bind(person_id)
+    .fetch_optional(db)
+    .await?;
+
+    Ok(father_result.map(|(name,)| name))
+}
+
+/// Helper function to get mother's name for graph
+async fn get_mother_info_for_graph(
+    person_id: Uuid,
+    db: &sqlx::PgPool,
+) -> Result<Option<String>, AppError> {
+    let mother_result: Option<(String,)> = sqlx::query_as(
+        "SELECT full_name FROM persons WHERE id IN (
+            SELECT person_a_id FROM relationships WHERE person_b_id = $1 AND relationship_type = 'parent' AND status <> 'rejected'
+        ) AND gender = 'Female' LIMIT 1"
+    )
+    .bind(person_id)
+    .fetch_optional(db)
+    .await?;
+
+    Ok(mother_result.map(|(name,)| name))
+}
+
 #[derive(Deserialize)]
 pub struct SubgraphQuery {
     degrees: Option<i32>,
@@ -77,17 +138,28 @@ pub async fn get_subgraph(
     .fetch_all(&state.db)
     .await?;
 
-    let persons: Vec<PersonResponse> = person_result_rows.iter().map(|row| {
-        PersonResponse {
-            id: row.get("id"),
+    let mut persons: Vec<PersonResponse> = Vec::new();
+
+    for row in person_result_rows.iter() {
+        let id: Uuid = row.get("id");
+        let gender: Option<String> = row.get("gender");
+        let partner_status = get_partner_status_for_graph(id, gender.as_deref(), &state.db).await?;
+        let father_info = get_father_info_for_graph(id, &state.db).await?;
+        let mother_info = get_mother_info_for_graph(id, &state.db).await?;
+
+        persons.push(PersonResponse {
+            id,
             full_name: row.get("full_name"),
             birth_date: row.get("birth_date"),
             death_date: row.get("death_date"),
-            gender: row.get("gender"),
+            gender,
             married: row.get("married"),
             avatar_url: row.get("avatar_url"),
-        }
-    }).collect();
+            partner_status,
+            father_info,
+            mother_info,
+        });
+    }
 
     // Fetch all relationships between these persons (where both person_a and person_b are in the set)
     let rel_rows = sqlx::query(
