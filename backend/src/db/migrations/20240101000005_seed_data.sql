@@ -76,7 +76,7 @@ VALUES
     -- John and Alice as siblings
     ('750e8400-e29b-41d4-a716-446655440007', '650e8400-e29b-41d4-a716-446655440001', '650e8400-e29b-41d4-a716-446655440002', 'sibling', 'validated', NOW(), NOW()),
 
-    -- John's marriage
+    -- John as parent to children (Sarah's relationships added in migration 20240101000008)
     ('750e8400-e29b-41d4-a716-446655440008', '650e8400-e29b-41d4-a716-446655440001', '650e8400-e29b-41d4-a716-446655440020', 'parent', 'validated', NOW(), NOW()),
     ('750e8400-e29b-41d4-a716-446655440009', '650e8400-e29b-41d4-a716-446655440001', '650e8400-e29b-41d4-a716-446655440021', 'parent', 'validated', NOW(), NOW()),
 
