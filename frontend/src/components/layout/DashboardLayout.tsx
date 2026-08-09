@@ -38,13 +38,25 @@ export default function DashboardLayout({
     { label: 'Settings', path: '/settings', icon: '⚡' },
   ]
 
+  const handleAddPerson = () => {
+    if (onAddPerson) {
+      onAddPerson()
+    }
+  }
+
+  const handleAddFamilyMember = () => {
+    if (onAddFamilyMember) {
+      onAddFamilyMember()
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-row">
       {/* Sidebar */}
       <div
         className={`bg-white shadow-lg transition-all duration-300 ${
           sidebarOpen ? 'w-64' : 'w-20'
-        }`}
+        } flex-shrink-0`}
       >
         <div className="p-4 flex items-center justify-between border-b-2 border-gray-200">
           {sidebarOpen && (
@@ -88,8 +100,8 @@ export default function DashboardLayout({
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navigation */}
         <div className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -113,21 +125,25 @@ export default function DashboardLayout({
 
       {/* Right Panel */}
       {showRightPanel && (
-        <div className="w-64 bg-white shadow-lg flex flex-col justify-center items-center gap-4 p-6 border-l border-gray-200">
-          <button
-            onClick={onAddPerson}
-            className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold transition-colors"
-          >
-            <span className="text-xl">👤</span>
-            <span>Add Person</span>
-          </button>
-          <button
-            onClick={onAddFamilyMember}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold transition-colors"
-          >
-            <span className="text-xl">🔗</span>
-            <span>Add Member</span>
-          </button>
+        <div className="w-64 bg-white shadow-lg border-l border-gray-200 flex flex-col justify-center items-center gap-4 p-6 flex-shrink-0">
+          {onAddPerson && (
+            <button
+              onClick={handleAddPerson}
+              className="w-full flex flex-col items-center justify-center gap-2 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 active:bg-green-800 font-semibold transition-all duration-200 transform hover:scale-105"
+            >
+              <span className="text-3xl">👤</span>
+              <span>Add Person</span>
+            </button>
+          )}
+          {onAddFamilyMember && (
+            <button
+              onClick={handleAddFamilyMember}
+              className="w-full flex flex-col items-center justify-center gap-2 bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 active:bg-blue-800 font-semibold transition-all duration-200 transform hover:scale-105"
+            >
+              <span className="text-3xl">🔗</span>
+              <span>Add Member</span>
+            </button>
+          )}
         </div>
       )}
     </div>
