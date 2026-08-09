@@ -30,18 +30,18 @@ export default function RelationshipEdge({
 
   // Distinct colors and widths for different relationship types
   let stroke = '#22c55e'        // Green for sibling
-  let strokeWidth = 4
+  let strokeWidth = 10
   let strokeDasharray: string | undefined = undefined
 
   if (!isValidated) {
-    strokeDasharray = '8,5'
-    strokeWidth = 2
+    strokeDasharray = '10,8'
+    strokeWidth = 6
   } else if (relationshipType === 'spouse') {
     stroke = '#ec1b6b'          // Hot pink for spouse
-    strokeWidth = 6
+    strokeWidth = 14
   } else if (relationshipType === 'parent' || relationshipType === 'child') {
     stroke = '#1e40af'          // Dark blue for parent/child
-    strokeWidth = 5
+    strokeWidth = 12
   }
 
   // Get display text for relationship type
