@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuthStore } from '../store/authStore'
+import { usePersonsList } from '../hooks/usePersons'
 import { useGraph } from '../hooks/useGraph'
 import FamilyChart from '../components/chart/FamilyChart'
 import AddRelativeModal from '../components/modals/AddRelativeModal'
@@ -10,10 +11,14 @@ export default function FamilyTreePage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [degrees, setDegrees] = useState(3)
 
-  // For now, use a default person ID or first person
-  const defaultPersonId = user?.id || ''
+  // Fetch user's persons
+  const { data: personsData, isLoading: personsLoading } = usePersonsList(100, 0)
 
-  const { isLoading, flowData } = useGraph(defaultPersonId, degrees)
+  // Use the first person's ID as the root for the family tree
+  const personId = personsData?.data?.[0]?.id
+
+  const { isLoading: graphLoading, flowData } = useGraph(personId, degrees)
+  const isLoading = personsLoading || graphLoading
 
   if (!user) {
     return (
@@ -48,6 +53,18 @@ export default function FamilyTreePage() {
               <p className="text-gray-600">Loading family tree...</p>
             </div>
           </div>
+        ) : !personsData?.data || personsData.data.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">Add a person to get started</p>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              >
+                + Add Family Member
+              </button>
+            </div>
+          </div>
         ) : flowData ? (
           <>
             <FamilyChart
@@ -76,11 +93,13 @@ export default function FamilyTreePage() {
         )}
       </div>
 
-      <AddRelativeModal
-        personAId={defaultPersonId}
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-      />
+      {personId && (
+        <AddRelativeModal
+          personAId={personId}
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+        />
+      )}
     </div>
   )
 }
