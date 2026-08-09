@@ -7,6 +7,7 @@ import ReactFlow, {
   Background,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   MiniMap,
   Panel,
 } from 'reactflow'
@@ -22,6 +23,8 @@ interface FamilyChartProps {
 }
 
 function FamilyChartContent() {
+  const { fitView } = useReactFlow()
+
   return (
     <>
       <Background />
@@ -51,6 +54,13 @@ function FamilyChartContent() {
             </div>
           </div>
         </div>
+        <button
+          onClick={() => fitView({ padding: 0.2, duration: 500 })}
+          className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+          title="Auto-center chart"
+        >
+          🎯 Center
+        </button>
       </Panel>
       <Panel position="bottom-left" className="space-y-2">
         <div className="bg-white p-2 rounded-lg shadow text-xs font-semibold text-gray-600">
