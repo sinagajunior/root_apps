@@ -73,6 +73,7 @@ export default function PersonEditModal({
         death_date: data.death_date || undefined,
         gender: data.gender || undefined,
         married: data.married || undefined,
+        avatar_url: data.avatar_url || undefined,
       }
       const response = await persons.update(person.id, payload)
       return response.data
