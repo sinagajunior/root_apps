@@ -81,10 +81,11 @@ function calculateHierarchicalLayout(nodes: Node[], edges: Edge[]): Node[] {
     depthGroups.get(depth)!.push(nodeId)
   })
 
-  // Calculate layout positions
-  const horizontalSpacing = 280
-  const verticalSpacing = 200
-  const minX = -500
+  // Calculate layout positions with increased spacing for edge labels
+  // Increased spacing to prevent edge label overlap
+  const horizontalSpacing = 380  // Increased from 280 to 380
+  const verticalSpacing = 280    // Increased from 200 to 280
+  const minX = -600              // Adjusted to center better with larger spacing
 
   const layoutNodes = nodes.map((node) => {
     const depth = depthMap.get(node.id) || 0
@@ -93,10 +94,12 @@ function calculateHierarchicalLayout(nodes: Node[], edges: Edge[]): Node[] {
     const groupSize = depthGroup.length
 
     // Center nodes horizontally within their group
+    // Extra spacing ensures edge labels have room to display
     const groupWidth = Math.max(groupSize * horizontalSpacing - horizontalSpacing, 0)
     const x = minX + (indexInGroup * horizontalSpacing) + groupWidth / (groupSize || 1)
 
     // Position vertically by depth
+    // Increased spacing prevents vertical label overlap
     const y = depth * verticalSpacing
 
     return {

@@ -140,19 +140,6 @@ export default function DashboardLayout({
           </>
         )}
 
-        {/* Spacer to push logout to bottom */}
-        <div className="flex-1"></div>
-
-        {/* Logout Button at Bottom */}
-        <div className="p-4 border-t-2 border-gray-200 flex-shrink-0">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold"
-          >
-            <span className="text-xl">🚪</span>
-            {sidebarOpen && <span>Logout</span>}
-          </button>
-        </div>
       </aside>
 
       {/* Main Content */}
