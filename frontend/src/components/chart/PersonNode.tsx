@@ -18,53 +18,163 @@ export default function PersonNode({ data }: PersonNodeProps) {
     .map((n) => n[0])
     .join('')
     .toUpperCase()
+    .slice(0, 2)
 
-  const ringColor = data.status === 'validated' ? 'ring-green-500' : 'ring-yellow-500'
-  const bgColor = data.status === 'validated' ? 'bg-gradient-to-br from-green-100 to-green-200' : 'bg-gradient-to-br from-yellow-100 to-yellow-200'
+  const borderColor = data.status === 'validated' ? '#10b981' : '#f59e0b'
+  const bgGradient = data.status === 'validated'
+    ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)'
+    : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
 
   return (
-    <div
-      onClick={() => {
-        // Navigate to person detail page
-      }}
-      className="cursor-pointer"
-    >
+    <div style={{ width: '280px' }}>
       <Handle type="target" position={Position.Top} />
 
-      <div className="bg-white rounded-lg shadow-lg hover:shadow-2xl transition p-3 max-w-56 border-2" style={{ borderColor: data.status === 'validated' ? '#22c55e' : '#eab308' }}>
-        {/* Avatar/Initials Circle */}
+      {/* Main Card Container */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          padding: '20px',
+          boxShadow: `0 10px 25px rgba(0, 0, 0, 0.1)`,
+          border: `3px solid ${borderColor}`,
+          transition: 'all 0.3s ease',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = `0 15px 35px rgba(0, 0, 0, 0.2)`
+          e.currentTarget.style.transform = 'translateY(-5px)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = `0 10px 25px rgba(0, 0, 0, 0.1)`
+          e.currentTarget.style.transform = 'translateY(0)'
+        }}
+      >
+        {/* Avatar Circle */}
         <div
-          className={`w-16 h-16 rounded-full ${bgColor} border-4 ${ringColor} flex items-center justify-center shadow-md mx-auto mb-2 overflow-hidden`}
+          style={{
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            margin: '0 auto 16px',
+            background: bgGradient,
+            border: `4px solid ${borderColor}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
         >
           {data.avatar_url ? (
             <img
               src={data.avatar_url}
               alt={data.label}
-              className="w-full h-full object-cover"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none'
               }}
             />
           ) : (
-            <div className="text-lg font-bold text-gray-700">{initials}</div>
+            <div
+              style={{
+                fontSize: '36px',
+                fontWeight: 'bold',
+                color: '#374151',
+              }}
+            >
+              {initials}
+            </div>
           )}
         </div>
 
         {/* Name */}
-        <div className="text-sm font-semibold text-gray-800 text-center truncate">
+        <div
+          style={{
+            fontSize: '16px',
+            fontWeight: '700',
+            color: '#1f2937',
+            textAlign: 'center',
+            marginBottom: '12px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           {data.label}
         </div>
 
-        {/* Gender and Status */}
-        <div className="text-xs text-gray-600 text-center mt-1">
-          {data.gender && <div>{data.gender}</div>}
-          {data.married && <div className="text-pink-500 font-semibold">💍 Married</div>}
-        </div>
+        {/* Gender */}
+        {data.gender && (
+          <div
+            style={{
+              fontSize: '12px',
+              color: '#6b7280',
+              textAlign: 'center',
+              marginBottom: '8px',
+            }}
+          >
+            👤 {data.gender}
+          </div>
+        )}
+
+        {/* Married Status */}
+        {data.married && (
+          <div
+            style={{
+              fontSize: '14px',
+              color: '#ec4899',
+              textAlign: 'center',
+              fontWeight: '600',
+              marginBottom: '12px',
+            }}
+          >
+            💍 Married
+          </div>
+        )}
+
+        {/* Divider */}
+        <div
+          style={{
+            height: '1px',
+            background: '#e5e7eb',
+            margin: '12px 0',
+          }}
+        />
 
         {/* Dates */}
-        <div className="text-xs text-gray-500 mt-2 text-center space-y-0.5 border-t pt-2">
-          {data.birthDate && <div>Born: {data.birthDate}</div>}
-          {data.deathDate && <div className="text-gray-400">Died: {data.deathDate}</div>}
+        <div
+          style={{
+            fontSize: '11px',
+            color: '#6b7280',
+            textAlign: 'center',
+            lineHeight: '1.6',
+          }}
+        >
+          {data.birthDate && (
+            <div>📅 Born: {data.birthDate}</div>
+          )}
+          {data.deathDate && (
+            <div style={{ color: '#9ca3af' }}>🪦 Died: {data.deathDate}</div>
+          )}
+        </div>
+
+        {/* Status Badge */}
+        <div
+          style={{
+            marginTop: '12px',
+            textAlign: 'center',
+            fontSize: '11px',
+            fontWeight: '600',
+            color: borderColor,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}
+        >
+          {data.status === 'validated' ? '✓ Validated' : '⏳ Pending'}
         </div>
       </div>
 

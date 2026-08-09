@@ -95,16 +95,14 @@ export default function PersonForm({ initialPerson, onSuccess }: PersonFormProps
       {/* Avatar Section */}
       <div className="flex flex-col items-center">
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center overflow-hidden border-4 border-white shadow-lg mb-4">
-          {avatarUrl || previewAvatar ? (
+          {avatarUrl ? (
             <img
-              src={avatarUrl || previewAvatar}
+              src={avatarUrl}
               alt="Avatar"
               className="w-full h-full object-cover"
-              onError={() => (
-                <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
-                  {(initialPerson?.full_name || '')[0]?.toUpperCase()}
-                </div>
-              )}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
             />
           ) : (
             <div className="text-white text-2xl font-bold">
